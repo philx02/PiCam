@@ -1,0 +1,1 @@
+sudo mount -t cifs -o user="Philippe Cayouette",password="orbitxxx",uid=pi,gid=pi  //192.168.0.97/Share SharePC
