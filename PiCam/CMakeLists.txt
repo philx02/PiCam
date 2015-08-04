@@ -15,6 +15,8 @@ SET(${this_target}_HEADER_FILES
   TcpServer/ISender.h
   TcpServer/TcpConnection.h
   TcpServer/TcpServer.h
+  Subject.h
+  IObserver.h
 )
 
 SET( ${this_target}_SOURCE_FILES

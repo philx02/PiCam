@@ -3,8 +3,9 @@
 #include "CommonTypedefs.h"
 #include "Operations.h"
 #include "SrtBuilder.h"
+#include "Subject.h"
 
-class CameraAndLightControl
+class CameraAndLightControl : public Subject< CameraAndLightControl >
 {
 public:
   CameraAndLightControl(const char *iH264FilePath, const char *iSrtFilePath)
@@ -29,6 +30,7 @@ public:
       notifyCameraChildProcess(mCameraChild);
       mRecording = true;
       mStartRecord = sch::high_resolution_clock::now();
+      notify(*this);
     }
   }
 
@@ -40,7 +42,13 @@ public:
       auto wRecordDuration = sch::high_resolution_clock::now() - mStartRecord;
       mSrtBuilder.append(mStartRecord, wRecordDuration);
       mRecording = false;
+      notify(*this);
     }
+  }
+
+  bool recording() const
+  {
+    return mRecording;
   }
 
 private:
