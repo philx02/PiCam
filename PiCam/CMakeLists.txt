@@ -1,13 +1,33 @@
-cmake_minimum_required (VERSION 2.8)
+SET(this_target PiCam)
 
-SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} --std=c++11" )
 
-project (PiCam)
-
-SET( SOURCE_FILES
-  main.cpp
+INCLUDE_DIRECTORIES(
+  ${Boost_INCLUDE_DIRS}
+  ${Internal_INCLUDE}
 )
 
-add_executable(PiCam ${SOURCE_FILES})
-target_link_libraries(PiCam pthread)
+SET(${this_target}_HEADER_FILES
+  Operations.h
+  ActiveObject.h
+  CameraAndLightControl.h
+  CommonTypedefs.h
+  SrtBuilder.h
+  TcpServer/ISender.h
+  TcpServer/TcpConnection.h
+  TcpServer/TcpServer.h
+)
 
+SET( ${this_target}_SOURCE_FILES
+  main.cpp
+) 
+
+#SET_SOURCE_FILES_PROPERTIES(${this_target}_HEADER_FILES
+#                            PROPERTIES HEADER_FILE_ONLY TRUE)
+ 
+LIST(APPEND ${this_target}_SOURCE_FILES ${${this_target}_HEADER_FILES})
+
+add_executable(${this_target} ${${this_target}_SOURCE_FILES})
+target_link_libraries(PiCam ${Boost_LIBRARIES})
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+target_link_libraries(PiCam pthread)
+ENDIF()

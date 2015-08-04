@@ -3,11 +3,14 @@
 #include "CameraAndLightControl.h"
 #include "TcpServer/TcpServer.h"
 
+#include <boost/asio.hpp>
+
 #include <iostream>
 #include <chrono>
 
 int main(int argc, char *argv[])
 {
+  boost::asio::io_service wIoService;
   ActiveObject< CameraAndLightControl > wCameraAndLightControl(CameraAndLightControl(argv[1], argv[2]));
   std::thread wActiveObjectThread([&]() { wCameraAndLightControl.run(); });
   auto wGpioFd = openGpio(argv[3]);
