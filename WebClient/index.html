@@ -37,7 +37,9 @@
     //document.getElementById("debug").innerHTML = evt.data;
     var wSplit = evt.data.split("|");
     var wRecording = wSplit[1] == "1" ? "ON" : "OFF";
+    var wRecordingClass = wSplit[1] == "1" ? "class_on" : "class_off";
     document.getElementById("record_status").innerHTML = wRecording;
+    document.getElementById("record_status").className = wRecordingClass;
   }
 
 </script>

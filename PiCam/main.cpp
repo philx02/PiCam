@@ -10,13 +10,13 @@
 #include <chrono>
 
 
-void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAndLightControl, const char *iInputGpio);
+void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAndLightControl, const char *iInputGpio, unsigned short iPort);
 
 int main(int argc, char *argv[])
 {
-  if (argc != 4)
+  if (argc != 5)
   {
-    std::cerr << "Usage: PiCam path_to_video path_to_srt path_to_input_gpio";
+    std::cerr << "Usage: PiCam path_to_video path_to_srt path_to_input_gpio websocket_port";
     exit(1);
   }
 
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 
   std::thread wActiveObjectThread([&]() { wCameraAndLightControl.run(); });
 
-  startServerAndMonitorPins(wCameraAndLightControl, argv[3]);
+  startServerAndMonitorPins(wCameraAndLightControl, argv[3], static_cast< unsigned short >(std::strtoul(argv[4], nullptr, 10)));
 
   wCameraAndLightControl.stop();
   wActiveObjectThread.join();
@@ -32,10 +32,10 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAndLightControl, const char *iInputGpio)
+void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAndLightControl, const char *iInputGpio, unsigned short iPort)
 {
   boost::asio::io_service wIoService;
-  auto wTcpServer = createTcpServer(wIoService, RemoteControl(iCameraAndLightControl), 80);
+  auto wTcpServer = createTcpServer(wIoService, RemoteControl(iCameraAndLightControl), iPort);
 
   std::thread wTcpServerThread([&]() { wIoService.run(); });
 
