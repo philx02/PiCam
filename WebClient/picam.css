@@ -10,7 +10,21 @@ body
 
 td
 {
-  font-size: 200%;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  font-size: 400%;
   text-align: center;
-  border: 1px solid black;
+  border: 5px solid black;
+}
+
+.class_on
+{
+  width: 35%;
+  background-color: green;
+}
+
+.class_off
+{
+  width: 35%;
+  background-color: red;
 }
