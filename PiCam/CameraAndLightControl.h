@@ -10,13 +10,16 @@ class CameraAndLightControl : public Subject< CameraAndLightControl >
 public:
   CameraAndLightControl(const char *iH264FilePath, const char *iSrtFilePath)
     : mCameraChild(openCameraChildProcess(iH264FilePath))
+    , mRecording(false)
     , mSrtBuilder(iSrtFilePath)
   {
+    waitForCamera();
   }
 
   // VS2013 still does not support defaulted move constructors :(
   CameraAndLightControl(CameraAndLightControl &&iCameraAndLightControl)
-    : mCameraChild(std::move(iCameraAndLightControl.mCameraChild))
+    : Subject< CameraAndLightControl >(std::move(iCameraAndLightControl))
+    , mCameraChild(std::move(iCameraAndLightControl.mCameraChild))
     , mRecording(std::move(iCameraAndLightControl.mRecording))
     , mSrtBuilder(std::move(iCameraAndLightControl.mSrtBuilder))
     , mStartRecord(std::move(iCameraAndLightControl.mStartRecord))
@@ -44,6 +47,11 @@ public:
       mRecording = false;
       notify(*this);
     }
+  }
+
+  void notifyOne(IObserver< CameraAndLightControl > &iObserver)
+  {
+    iObserver.update(*this);
   }
 
   bool recording() const

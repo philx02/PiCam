@@ -4,14 +4,24 @@
 #include <boost/asio.hpp>
 #include <memory>
 #include <boost/bind.hpp>
+#include <boost/noncopyable.hpp>
 
 template< typename PayloadHandler >
-class TcpServer
+class TcpServer : public boost::noncopyable
 {
 public:
   TcpServer(TcpServer &&iServer)
     : mAcceptor(std::move(iServer.mAcceptor))
-    , mPayloadHandler(iServer.mPayloadHandler)
+    , mPayloadHandler(std::move(iServer.mPayloadHandler))
+  {
+  }
+
+  void stop()
+  {
+    mAcceptor.close();
+  }
+
+  ~TcpServer()
   {
   }
 

@@ -1,0 +1,16 @@
+body
+{
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+
+.status_table, .control_table
+{
+  width: 100%
+}
+
+td
+{
+  font-size: 200%;
+  text-align: center;
+  border: 1px solid black;
+}
