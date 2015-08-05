@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<link rel="stylesheet" type="text/css" href="picam.css"/>
+</head>
+ 
+<body onload="connect()">
+
+<script src="common.js"></script>
+
+<script>
+
+  var wWebSocket;
+
+  function connect()
+  {
+  try
+  {
+  wWebSocket = new WebSocket(QueryString.server);
+  }
+  catch (exc)
+  {
+  document.getElementById("debug").innerHTML = exc.message;
+  }
+  wWebSocket.onopen = function (evt) { greetings(evt); };
+  wWebSocket.onmessage = function (evt) { parseMessage(evt); };
+  }
+
+  function greetings(evt)
+  {
+  wWebSocket.send("get_status");
+  }
+
+  function parseMessage(evt)
+  {
+    //document.getElementById("debug").innerHTML = evt.data;
+    var wSplit = evt.data.split("|");
+    var wRecording = wSplit[1] == "1" ? "ON" : "OFF";
+    document.getElementById("record_status").innerHTML = wRecording;
+  }
+
+</script>
+
+<p id="debug"></p>
+  <p>
+  <table class="status_table">
+    <tr>
+      <td>Door Switch</td>
+      <td id="door_switch_status"></td>
+    </tr>
+    <tr>
+      <td>Recording</td>
+      <td id="record_status"></td>
+    </tr>
+    <tr>
+      <td>Light</td>
+      <td id="light_status"></td>
+    </tr>
+  </table>
+  </p>
+  
+  <p>
+    <table class="control_table">
+      <tr>
+        <td id="record_control">Recording Override</td>
+      </tr>
+      <tr>
+        <td id="light_control">Light Override</td>
+      </tr>
+    </table>
+  </p>
+
+</body>
+</html> 

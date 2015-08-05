@@ -35,6 +35,11 @@ public:
     doPush(false, iFunction);
   }
 
+  const T & getConstInternal() const
+  {
+    return mInternal;
+  }
+
 private:
   T mInternal;
   std::deque< std::pair< bool, std::function< void (T &ioInternal) > > > mWorkQueue;

@@ -84,9 +84,10 @@ int openSwitchListener(int)
 template< typename T >
 bool readGpio(T, int)
 {
-  static bool wValue = false;
-  wValue = !wValue;
-  return wValue;
+  // faking gpio readout with stdin
+  char wValue;
+  std::cin >> wValue;
+  return wValue == '1';
 }
 
 template< typename T >

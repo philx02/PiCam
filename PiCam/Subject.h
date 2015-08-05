@@ -15,7 +15,7 @@ public:
   }
   inline void detach(IObserver< SubjectType > *iObserver)
   {
-    std::remove(mObservers.begin(), mObservers.end(), iObserver);
+    mObservers.erase(std::remove(mObservers.begin(), mObservers.end(), iObserver), mObservers.end());
   }
 
 protected:

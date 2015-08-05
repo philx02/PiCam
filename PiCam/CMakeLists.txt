@@ -17,6 +17,7 @@ SET(${this_target}_HEADER_FILES
   TcpServer/TcpServer.h
   Subject.h
   IObserver.h
+  RemoteControl.h
 )
 
 SET( ${this_target}_SOURCE_FILES
