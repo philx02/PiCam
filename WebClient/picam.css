@@ -17,6 +17,12 @@ td
   border: 5px solid black;
 }
 
+.override_td
+{
+  border: none;
+  text-align: left;
+}
+
 .class_on
 {
   width: 35%;
@@ -27,4 +33,19 @@ td
 {
   width: 35%;
   background-color: red;
+}
+
+.toggle_button_td
+{
+  padding-top: 10px;
+  padding-bottom: 0px;
+  width: 35%;
+  vertical-align: central;
+  border: none;
+}
+
+.toggle_button
+{
+  width: 100%;
+  vertical-align: central;
 }
