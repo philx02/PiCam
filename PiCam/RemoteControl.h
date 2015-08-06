@@ -5,6 +5,8 @@
 #include "ActiveObject.h"
 #include "TcpServer/ISender.h"
 
+#include <boost/algorithm/string.hpp>
+
 #include <mutex>
 #include <condition_variable>
 
@@ -76,10 +78,31 @@ public:
   {
     if (iPayload == "get_status")
     {
-      mCameraAndLightControl.push([&](CameraAndLightControl &iControl)
+      mCameraAndLightControl.push([this](CameraAndLightControl &iControl)
       {
         iControl.notifyOne(*this);
       });
+      return;
+    }
+    std::vector< std::string > wSplit;
+    boost::split(wSplit, iPayload, boost::is_any_of("|"));
+    if (wSplit.size() == 2)
+    {
+      bool wOverride = wSplit[1] == "1";
+      if (wSplit[0] == "recording_override")
+      {
+        mCameraAndLightControl.push([wOverride](CameraAndLightControl &iControl)
+        {
+          iControl.recordingOverride(wOverride);
+        });
+      }
+      else if (wSplit[0] == "light_override")
+      {
+        mCameraAndLightControl.push([wOverride](CameraAndLightControl &iControl)
+        {
+          iControl.lightOverride(wOverride);
+        });
+      }
     }
   }
 
@@ -97,7 +120,17 @@ private:
     auto wSender = mSender.lock();
     if (wSender != nullptr)
     {
-      wSender->send(std::string("recording|") + (iControl.recording() ? "1" : "0"));
+      std::string wMessage;
+      wMessage += iControl.doorSwitch() ? "1" : "0";
+      wMessage += "|";
+      wMessage += iControl.recording() ? "1" : "0";
+      wMessage += "|";
+      wMessage += iControl.light() ? "1" : "0";
+      wMessage += "|";
+      wMessage += iControl.recordingOverride() ? "1" : "0";
+      wMessage += "|";
+      wMessage += iControl.lightOverride() ? "1" : "0";
+      wSender->send(wMessage);
     }
   }
 };
