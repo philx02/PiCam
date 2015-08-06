@@ -29,17 +29,76 @@
 
   function greetings(evt)
   {
-  wWebSocket.send("get_status");
+    wWebSocket.send("get_status");
   }
+
+  var wRecordingOverride = false;
+  var wLightOverride = false;
 
   function parseMessage(evt)
   {
     //document.getElementById("debug").innerHTML = evt.data;
     var wSplit = evt.data.split("|");
-    var wRecording = wSplit[1] == "1" ? "ON" : "OFF";
-    var wRecordingClass = wSplit[1] == "1" ? "class_on" : "class_off";
-    document.getElementById("record_status").innerHTML = wRecording;
-    document.getElementById("record_status").className = wRecordingClass;
+    if (wSplit[0] == "1")
+    {
+      document.getElementById("door_switch_status").innerHTML = "ON";
+      document.getElementById("door_switch_status").className = "class_on";
+    }
+    else
+    {
+      document.getElementById("door_switch_status").innerHTML = "OFF";
+      document.getElementById("door_switch_status").className = "class_off";
+    }
+    if (wSplit[1] == "1")
+    {
+      document.getElementById("record_status").innerHTML = "ON";
+      document.getElementById("record_status").className = "class_on";
+    }
+    else
+    {
+      document.getElementById("record_status").innerHTML = "OFF";
+      document.getElementById("record_status").className = "class_off";
+    }
+    if (wSplit[2] == "1")
+    {
+      document.getElementById("light_status").innerHTML = "ON";
+      document.getElementById("light_status").className = "class_on";
+    }
+    else
+    {
+      document.getElementById("light_status").innerHTML = "OFF";
+      document.getElementById("light_status").className = "class_off";
+    }
+    wRecordingOverride = wSplit[3] == "1";
+    wLightOverride = wSplit[4] == "1";
+    if (wRecordingOverride)
+    {
+      document.getElementById("record_control").innerHTML = "<img class=\"toggle_button\" src=\"ON.png\" />";
+    }
+    else
+    {
+      document.getElementById("record_control").innerHTML = "<img class=\"toggle_button\" src=\"OFF.png\" />";
+    }
+    if (wLightOverride)
+    {
+      document.getElementById("light_control").innerHTML = "<img class=\"toggle_button\" src=\"ON.png\" />";
+    }
+    else
+    {
+      document.getElementById("light_control").innerHTML = "<img class=\"toggle_button\" src=\"OFF.png\" />";
+    }
+  }
+
+  function recording_override()
+  {
+    wRecordingOverride = !wRecordingOverride;
+    wWebSocket.send("recording_override|" + (wRecordingOverride ? "1" : "0"));
+  }
+
+  function light_override()
+  {
+    wLightOverride = !wLightOverride;
+    wWebSocket.send("light_override|" + (wLightOverride ? "1" : "0"));
   }
 
 </script>
@@ -61,14 +120,16 @@
     </tr>
   </table>
   </p>
-  
+
   <p>
     <table class="control_table">
       <tr>
-        <td id="record_control">Recording Override</td>
+        <td class="override_td">Recording Override</td>
+        <td class="toggle_button_td" id="record_control" onclick="recording_override()"></td>
       </tr>
       <tr>
-        <td id="light_control">Light Override</td>
+        <td class="override_td">Light Override</td>
+        <td class="toggle_button_td" id="light_control" onclick="light_override()"></td>
       </tr>
     </table>
   </p>
