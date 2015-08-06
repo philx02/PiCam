@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 {
   if (argc != 5)
   {
-    std::cerr << "Usage: PiCam path_to_video path_to_srt path_to_input_gpio websocket_port";
+    std::cerr << "Usage: PiCam path_to_video path_to_srt path_to_input_gpio websocket_port" << std::endl;
     exit(1);
   }
 
@@ -47,20 +47,10 @@ void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAnd
     std::cout << "Waiting for input" << std::endl;
     auto wGpioValue = readGpio(wPollFd, wGpioFd);
     std::cout << "Gpio value: " << wGpioValue << std::endl;
-    if (wGpioValue)
+    iCameraAndLightControl.push([wGpioValue](CameraAndLightControl &iControl)
     {
-      iCameraAndLightControl.push([](CameraAndLightControl &iControl)
-      {
-        iControl.startRecording();
-      });
-    }
-    else
-    {
-      iCameraAndLightControl.push([](CameraAndLightControl &iControl)
-      {
-        iControl.stopRecording();
-      });
-    }
+      iControl.doorSwitch(wGpioValue);
+    });
   }
 
   wTcpServer.stop();
