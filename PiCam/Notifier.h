@@ -2,6 +2,7 @@
 
 #include "sqlite/sqlite3.h"
 #include "Statement.h"
+#include "SendEmail.h"
 
 #include <boost/noncopyable.hpp>
 
@@ -22,8 +23,8 @@ public:
     Statement(mSqlite, "PRAGMA foreign_keys = ON").runOnce();
     mRetrieve24_7IsOn.reset(new Statement(mSqlite, "SELECT value FROM parameters WHERE name='24/7 Coverage'"));
     mRetrieveCoverage.reset(new Statement(mSqlite, "SELECT weekday_start, time_start, weekday_end, time_end FROM coverage_intervals"));
-    mSmsRecipients.reset(new Statement(mSqlite, "SELECT recipient FROM sms_recipients"));
-    mEmailRecipients.reset(new Statement(mSqlite, "SELECT recipient FROM email_recipients"));
+    mSmsRecipients.reset(new Statement(mSqlite, "SELECT recipient_number FROM sms_recipients"));
+    mEmailRecipients.reset(new Statement(mSqlite, "SELECT recipient_name, recipient_email FROM email_recipients"));
   }
 
   Notifier(Notifier &&iNotifier)
@@ -59,10 +60,22 @@ private:
 
   void sendSms()
   {
+    mSmsRecipients->clear();
+    while (mSmsRecipients->runOnce() == SQLITE_ROW)
+    {
+      mSmsRecipients->evaluate([](sqlite3_stmt *iStatement)
+      {
+        std::string wCommand = "curl \"https://voip.ms/api/v1/rest.php?api_username=pcayouette@spoluck.ca&api_password=0TH7zRXKINXj7Exz8S0c&method=sendSMS&did=4503141161&dst=";
+        wCommand += reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0));
+        wCommand += "&message=it%20works\" &";
+        system(wCommand.c_str());
+      });
+    }
   }
 
   void sendEmail()
   {
+    ::sendEmail("Philippe Cayouette", "pcayouette@spoluck.ca");
   }
 
   bool checkIfInCoverage()

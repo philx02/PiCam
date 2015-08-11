@@ -23,16 +23,6 @@ void readFromSmtp(boost::asio::ip::tcp::socket &iSocket, const std::string &iExp
   std::istream wStream(&wStreamBuffer);
   std::getline(wStream, wResponse);
   wStreamBuffer.consume(wStreamBuffer.size());
-  //std::vector< std::string > wSplit;
-  //boost::split(wSplit, wResponse, boost::is_any_of(" "), boost::token_compress_on);
-  //if (!wSplit.empty() && wSplit.front() == iExpectedResponse)
-  //{
-  //  LOG4CXX_TRACE(mLogger, wResponse);
-  //}
-  //else
-  //{
-  //  LOG4CXX_WARN(mLogger, "SMTP Error: " << wResponse);
-  //}
 }
 
 std::string formatDateForEmail(const bpt::ptime &iDate, const std::string &iTimezone)
@@ -43,7 +33,7 @@ std::string formatDateForEmail(const bpt::ptime &iDate, const std::string &iTime
   return wDateString.str();
 }
 
-void sendEmail(size_t iTournamentId, const std::string &iTournamentName, const std::string &iName, const std::string &iOpponent, size_t iPlayerScore, size_t iOpponentScore, const std::string &iGuid, const std::string &iEmail, const std::string &iUrl, const std::string &iServer)
+void sendEmail(const std::string &iName, const std::string &iEmail)
 {
   static const std::string w220(boost::lexical_cast< std::string >(220));
   static const std::string w501(boost::lexical_cast< std::string >(501));
@@ -61,12 +51,12 @@ void sendEmail(size_t iTournamentId, const std::string &iTournamentName, const s
   static const std::string wDate("Date: ");
   static const std::string wContentTypeAndCharset("Content-Type: text/html; charset=\"utf-8\"");
   static const std::string wFinish(".");
-  static const std::string wFromEmail("no-reply@tws-cae.com");
-  static const std::string wFromName("Tournament WebSocket <" + wFromEmail + ">");
+  static const std::string wFromEmail("no-reply@spoluck.ca");
+  static const std::string wFromName("PiCam <" + wFromEmail + ">");
   static boost::asio::io_service wIoService;
   try
   {
-    boost::asio::ip::tcp::endpoint wSmtpServer = *boost::asio::ip::tcp::resolver(wIoService).resolve(boost::asio::ip::tcp::resolver::query("mail.cae.com", "25"));
+    boost::asio::ip::tcp::endpoint wSmtpServer(boost::asio::ip::address_v4::from_string("192.168.0.103"), 25);
     boost::asio::ip::tcp::socket wSocket(wIoService);
     wSocket.connect(wSmtpServer);
     readFromSmtp(wSocket, w220);
@@ -80,19 +70,12 @@ void sendEmail(size_t iTournamentId, const std::string &iTournamentName, const s
     readFromSmtp(wSocket, w354);
     sendToSmtp(wSocket, wFrom + wFromName);
     sendToSmtp(wSocket, wTo + iName + " <" + iEmail + ">");
-    sendToSmtp(wSocket, wSubject + "Result Submission");
+    sendToSmtp(wSocket, wSubject + "PiCam Alert");
     sendToSmtp(wSocket, wDate + formatDateForEmail(bpt::second_clock::universal_time(), "UT"));
     sendToSmtp(wSocket, wContentTypeAndCharset);
     std::string wMessage;
-    wMessage += "<style> p, h2 { font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; } </style>";
-    wMessage += "<h2>" + iTournamentName + "</h2>";
-    wMessage += "<p>Please, confirm that you have <b>";
-    wMessage += iPlayerScore > iOpponentScore ? "WON" : "LOST";
-    wMessage += "</b> the matchup against " + iOpponent;
-    wMessage += " by a score of <b>" + std::to_string(iPlayerScore) + " - " + std::to_string(iOpponentScore) + "</b>.</p>";
-    std::string wUrl = iUrl + "?id=" + std::to_string(iTournamentId) + "&server=" + iServer + "&guid=" + iGuid + "&agree=";
-    wMessage += "<p><a href='" + wUrl + "1" + "'>I agree</a></p>";
-    wMessage += "<p><a href='" + wUrl + "0" + "'>I disagree</a></p>";
+    wMessage += "<style> p { font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; } </style>";
+    wMessage += "<p><a href='http://google.com'>Door opened during coverage time.</a></p>";
     sendToSmtp(wSocket, wMessage);
     sendToSmtp(wSocket, wFinish);
     readFromSmtp(wSocket, w250);
