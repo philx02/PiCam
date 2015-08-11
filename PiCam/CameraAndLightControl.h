@@ -4,18 +4,22 @@
 #include "Operations.h"
 #include "SrtBuilder.h"
 #include "Subject.h"
+#include "Notifier.h"
 
-class CameraAndLightControl : public Subject< CameraAndLightControl >
+#include <boost/noncopyable.hpp>
+
+class CameraAndLightControl : public Subject< CameraAndLightControl >, public boost::noncopyable
 {
 public:
-  CameraAndLightControl(const char *iH264FilePath, const char *iSrtFilePath)
-    : mCameraChild(openCameraChildProcess(iH264FilePath))
+  CameraAndLightControl(const char *iCameraPid, const char *iSrtFilePath, const char *iNotifierDbLocation)
+    : mCameraPid(std::strtol(iCameraPid, nullptr, 10))
     , mDoorSwitch(false)
     , mRecording(false)
     , mLight(false)
     , mRecordingOverride(false)
     , mLightOverride(false)
     , mSrtBuilder(iSrtFilePath)
+    , mNotifier(iNotifierDbLocation)
   {
     waitForCamera();
   }
@@ -23,7 +27,7 @@ public:
   // VS2013 still does not support defaulted move constructors :(
   CameraAndLightControl(CameraAndLightControl &&iCameraAndLightControl)
     : Subject< CameraAndLightControl >(std::move(iCameraAndLightControl))
-    , mCameraChild(std::move(iCameraAndLightControl.mCameraChild))
+    , mCameraPid(std::move(iCameraAndLightControl.mCameraPid))
     , mDoorSwitch(std::move(iCameraAndLightControl.mDoorSwitch))
     , mRecording(std::move(iCameraAndLightControl.mRecording))
     , mLight(std::move(iCameraAndLightControl.mLight))
@@ -31,6 +35,7 @@ public:
     , mLightOverride(std::move(iCameraAndLightControl.mLightOverride))
     , mSrtBuilder(std::move(iCameraAndLightControl.mSrtBuilder))
     , mStartRecord(std::move(iCameraAndLightControl.mStartRecord))
+    , mNotifier(std::move(iCameraAndLightControl.mNotifier))
   {
   }
 
@@ -117,7 +122,7 @@ public:
   }
 
 private:
-  CameraPid mCameraChild;
+  CameraPid mCameraPid;
   bool mDoorSwitch;
   bool mRecording;
   bool mLight;
@@ -125,12 +130,13 @@ private:
   bool mLightOverride;
   SrtBuilder mSrtBuilder;
   HighResolutionClock::time_point mStartRecord;
+  Notifier mNotifier;
 
   void startRecording()
   {
     if (!mRecording)
     {
-      notifyCameraChildProcess(mCameraChild);
+      notifyCameraChildProcess(mCameraPid);
       mRecording = true;
       mStartRecord = sch::high_resolution_clock::now();
     }
@@ -140,7 +146,7 @@ private:
   {
     if (mRecording)
     {
-      notifyCameraChildProcess(mCameraChild);
+      notifyCameraChildProcess(mCameraPid);
       mRecording = false;
       auto wRecordDuration = sch::high_resolution_clock::now() - mStartRecord;
       mSrtBuilder.append(mStartRecord, wRecordDuration);

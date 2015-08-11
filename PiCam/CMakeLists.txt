@@ -18,10 +18,15 @@ SET(${this_target}_HEADER_FILES
   Subject.h
   IObserver.h
   RemoteControl.h
+  Notifier.h
+  sqlite/sqlite3.h
+  Statement.h
+  SendEmail.h
 )
 
 SET( ${this_target}_SOURCE_FILES
   main.cpp
+  sqlite/sqlite3.c
 ) 
 
 #SET_SOURCE_FILES_PROPERTIES(${this_target}_HEADER_FILES

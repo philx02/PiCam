@@ -14,17 +14,17 @@ void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAnd
 
 int main(int argc, char *argv[])
 {
-  if (argc != 5)
+  if (argc != 6)
   {
-    std::cerr << "Usage: PiCam path_to_video path_to_srt path_to_input_gpio websocket_port" << std::endl;
+    std::cerr << "Usage: PiCam path_to_video path_to_srt path_to_db path_to_input_gpio websocket_port" << std::endl;
     exit(1);
   }
 
-  ActiveObject< CameraAndLightControl > wCameraAndLightControl(CameraAndLightControl(argv[1], argv[2]));
+  ActiveObject< CameraAndLightControl > wCameraAndLightControl(CameraAndLightControl(argv[1], argv[2], argv[3]));
 
   std::thread wActiveObjectThread([&]() { wCameraAndLightControl.run(); });
 
-  startServerAndMonitorPins(wCameraAndLightControl, argv[3], static_cast< unsigned short >(std::strtoul(argv[4], nullptr, 10)));
+  startServerAndMonitorPins(wCameraAndLightControl, argv[4], static_cast< unsigned short >(std::strtoul(argv[5], nullptr, 10)));
 
   wCameraAndLightControl.stop();
   wActiveObjectThread.join();
