@@ -21,22 +21,25 @@ public:
       throw std::runtime_error(sqlite3_errstr(wResult));
     }
     Statement(mSqlite, "PRAGMA foreign_keys = ON").runOnce();
-    mRetrieve24_7IsOn.reset(new Statement(mSqlite, "SELECT value FROM parameters WHERE name='24/7 Coverage'"));
+    mRetriveCoverageAlwaysOn.reset(new Statement(mSqlite, "SELECT value FROM parameters WHERE name='Coverage always on'"));
     mRetrieveCoverage.reset(new Statement(mSqlite, "SELECT weekday_start, time_start, weekday_end, time_end FROM coverage_intervals"));
-    mSmsRecipients.reset(new Statement(mSqlite, "SELECT recipient_number FROM sms_recipients"));
-    mEmailRecipients.reset(new Statement(mSqlite, "SELECT recipient_name, recipient_email FROM email_recipients"));
+    mSmsRecipients.reset(new Statement(mSqlite, "SELECT recipient_number, enabled FROM sms_recipients"));
+    mEmailRecipients.reset(new Statement(mSqlite, "SELECT recipient_name, recipient_email, enabled FROM email_recipients"));
   }
 
   Notifier(Notifier &&iNotifier)
     : mSqlite(std::move(iNotifier.mSqlite))
-    , mRetrieve24_7IsOn(std::move(iNotifier.mRetrieve24_7IsOn))
+    , mRetriveCoverageAlwaysOn(std::move(iNotifier.mRetriveCoverageAlwaysOn))
     , mRetrieveCoverage(std::move(iNotifier.mRetrieveCoverage))
+    , mSmsRecipients(std::move(iNotifier.mSmsRecipients))
+    , mEmailRecipients(std::move(iNotifier.mEmailRecipients))
   {
+    iNotifier.mSqlite = nullptr;
   }
 
   ~Notifier()
   {
-    while (sqlite3_close(mSqlite) == SQLITE_BUSY)
+    while (mSqlite != nullptr && sqlite3_close(mSqlite) == SQLITE_BUSY)
     {
       std::this_thread::yield();
     }
@@ -53,7 +56,7 @@ public:
 
 private:
   sqlite3 *mSqlite;
-  std::unique_ptr< Statement > mRetrieve24_7IsOn;
+  std::unique_ptr< Statement > mRetriveCoverageAlwaysOn;
   std::unique_ptr< Statement > mRetrieveCoverage;
   std::unique_ptr< Statement > mSmsRecipients;
   std::unique_ptr< Statement > mEmailRecipients;
@@ -65,25 +68,38 @@ private:
     {
       mSmsRecipients->evaluate([](sqlite3_stmt *iStatement)
       {
-        std::string wCommand = "curl \"https://voip.ms/api/v1/rest.php?api_username=pcayouette@spoluck.ca&api_password=0TH7zRXKINXj7Exz8S0c&method=sendSMS&did=4503141161&dst=";
-        wCommand += reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0));
-        wCommand += "&message=it%20works\" &";
-        system(wCommand.c_str());
+        if (sqlite3_column_int(iStatement, 1) == 1)
+        {
+          std::string wCommand = "curl \"https://voip.ms/api/v1/rest.php?api_username=pcayouette@spoluck.ca&api_password=0TH7zRXKINXj7Exz8S0c&method=sendSMS&did=4503141161&dst=";
+          wCommand += reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0));
+          wCommand += "&message=Door%20opened%20during%20coverage%20time.\" &";
+          system(wCommand.c_str());
+        }
       });
     }
   }
 
   void sendEmail()
   {
-    ::sendEmail("Philippe Cayouette", "pcayouette@spoluck.ca");
+    mEmailRecipients->clear();
+    while (mEmailRecipients->runOnce() == SQLITE_ROW)
+    {
+      mEmailRecipients->evaluate([](sqlite3_stmt *iStatement)
+      {
+        if (sqlite3_column_int(iStatement, 2) == 1)
+        {
+          ::sendEmail(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)), reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 1)));
+        }
+      });
+    }
   }
 
   bool checkIfInCoverage()
   {
     return 
-      checkCoverageForStatement(*mRetrieve24_7IsOn, [](sqlite3_stmt *iStatement) -> bool
+      checkCoverageForStatement(*mRetriveCoverageAlwaysOn, [](sqlite3_stmt *iStatement) -> bool
       {
-        return sqlite3_column_int(iStatement, 0) == 1;
+        return std::strcmp(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)), "1") == 0;
       })
       ||
       checkCoverageForStatement(*mRetrieveCoverage, [](sqlite3_stmt *iStatement) -> bool
@@ -108,5 +124,6 @@ private:
         return true;
       }
     }
+    return false;
   }
 };
