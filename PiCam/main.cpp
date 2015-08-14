@@ -9,22 +9,21 @@
 #include <iostream>
 #include <chrono>
 
-
 void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAndLightControl, const char *iInputGpio, unsigned short iPort);
 
 int main(int argc, char *argv[])
 {
-  if (argc != 6)
+  if (argc != 7)
   {
-    std::cerr << "Usage: PiCam path_to_video path_to_srt path_to_db path_to_input_gpio websocket_port" << std::endl;
+    std::cerr << "Usage: PiCam raspivid_pid path_to_srt path_to_db path_to_output_gpio path_to_input_gpio websocket_port" << std::endl;
     exit(1);
   }
 
-  ActiveObject< CameraAndLightControl > wCameraAndLightControl(CameraAndLightControl(argv[1], argv[2], argv[3]));
+  ActiveObject< CameraAndLightControl > wCameraAndLightControl(CameraAndLightControl(argv[1], argv[2], argv[3], argv[4]));
 
   std::thread wActiveObjectThread([&]() { wCameraAndLightControl.run(); });
 
-  startServerAndMonitorPins(wCameraAndLightControl, argv[4], static_cast< unsigned short >(std::strtoul(argv[5], nullptr, 10)));
+  startServerAndMonitorPins(wCameraAndLightControl, argv[5], static_cast< unsigned short >(std::strtoul(argv[6], nullptr, 10)));
 
   wCameraAndLightControl.stop();
   wActiveObjectThread.join();

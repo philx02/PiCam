@@ -43,7 +43,7 @@ public:
   template< typename T >
   void bind(int iLocation, const T &iValue)
   {
-    static_assert(false, "Statement: cannot bind this type");
+    //static_assert(false, "Statement: cannot bind this type");
   }
 
   template< typename Lambda >

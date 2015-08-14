@@ -8,11 +8,15 @@
 
 #include <boost/noncopyable.hpp>
 
+#include <memory>
+#include <fstream>
+
 class CameraAndLightControl : public Subject< CameraAndLightControl >, public boost::noncopyable
 {
 public:
-  CameraAndLightControl(const char *iCameraPid, const char *iSrtFilePath, const char *iNotifierDbLocation)
+  CameraAndLightControl(const char *iCameraPid, const char *iSrtFilePath, const char *iNotifierDbLocation, const char *iGpioLightSwitch)
     : mCameraPid(std::strtol(iCameraPid, nullptr, 10))
+    , mGpioLightSwitch(new std::ofstream(iGpioLightSwitch))
     , mDoorSwitch(false)
     , mRecording(false)
     , mLight(false)
@@ -27,6 +31,7 @@ public:
   // VS2013 still does not support defaulted move constructors :(
   CameraAndLightControl(CameraAndLightControl &&iCameraAndLightControl)
     : Subject< CameraAndLightControl >(std::move(iCameraAndLightControl))
+    , mGpioLightSwitch(std::move(iCameraAndLightControl.mGpioLightSwitch))
     , mCameraPid(std::move(iCameraAndLightControl.mCameraPid))
     , mDoorSwitch(std::move(iCameraAndLightControl.mDoorSwitch))
     , mRecording(std::move(iCameraAndLightControl.mRecording))
@@ -39,6 +44,14 @@ public:
   {
   }
 
+  ~CameraAndLightControl()
+  {
+    if (mGpioLightSwitch != nullptr)
+    {
+      lightOff();
+    }
+  }
+
   void doorSwitch(bool iValue)
   {
     mDoorSwitch = iValue;
@@ -47,6 +60,7 @@ public:
     {
       startRecording();
       lightOn();
+      mNotifier.perform();
     }
     else
     {
@@ -123,6 +137,7 @@ public:
 
 private:
   CameraPid mCameraPid;
+  std::unique_ptr< std::ofstream > mGpioLightSwitch;
   bool mDoorSwitch;
   bool mRecording;
   bool mLight;
@@ -155,11 +170,23 @@ private:
 
   void lightOn()
   {
-    mLight = true;
+    if (!mLight)
+    {
+      mLight = true;
+      std::cout << "Light ON" << std::endl;
+      *mGpioLightSwitch << "1";
+      mGpioLightSwitch->flush();
+    }
   }
 
   void lightOff()
   {
-    mLight = false;
+    if (mLight)
+    {
+      mLight = false;
+      std::cout << "Light OFF" << std::endl;
+      *mGpioLightSwitch << "0";
+      mGpioLightSwitch->flush();
+    }
   }
 };

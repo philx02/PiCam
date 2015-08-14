@@ -1,6 +1,8 @@
 body
 {
   font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  width: 900px;
+  margin: auto;
 }
 
 .status_table, .control_table
