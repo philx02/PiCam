@@ -22,6 +22,7 @@ public:
     }
     Statement(mSqlite, "PRAGMA foreign_keys = ON").runOnce();
     mRetriveCoverageAlwaysOn.reset(new Statement(mSqlite, "SELECT value FROM parameters WHERE name='Coverage always on'"));
+    mSetCoverageAlwaysOn.reset(new Statement(mSqlite, "UPDATE parameters SET value=?1 WHERE name='Coverage always on'"));
     mRetrieveCoverage.reset(new Statement(mSqlite, "SELECT weekday_start, time_start, weekday_end, time_end FROM coverage_intervals"));
     mSmsRecipients.reset(new Statement(mSqlite, "SELECT recipient_number, enabled FROM sms_recipients"));
     mEmailRecipients.reset(new Statement(mSqlite, "SELECT recipient_name, recipient_email, enabled FROM email_recipients"));
@@ -30,6 +31,7 @@ public:
   Notifier(Notifier &&iNotifier)
     : mSqlite(std::move(iNotifier.mSqlite))
     , mRetriveCoverageAlwaysOn(std::move(iNotifier.mRetriveCoverageAlwaysOn))
+    , mSetCoverageAlwaysOn(std::move(iNotifier.mSetCoverageAlwaysOn))
     , mRetrieveCoverage(std::move(iNotifier.mRetrieveCoverage))
     , mSmsRecipients(std::move(iNotifier.mSmsRecipients))
     , mEmailRecipients(std::move(iNotifier.mEmailRecipients))
@@ -54,9 +56,31 @@ public:
     }
   }
 
+  bool coverageAlwaysOn() const
+  {
+    mRetriveCoverageAlwaysOn->clear();
+    bool wCoverageAlwaysOn = false;
+    while (mRetriveCoverageAlwaysOn->runOnce() == SQLITE_ROW)
+    {
+      mRetriveCoverageAlwaysOn->evaluate([&](sqlite3_stmt *iStatement)
+      {
+        wCoverageAlwaysOn = std::strcmp(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)), "1") == 0;
+      });
+    }
+    return wCoverageAlwaysOn;
+  }
+
+  void coverageAlwaysOn(bool iValue)
+  {
+    mSetCoverageAlwaysOn->clear();
+    mSetCoverageAlwaysOn->bind(1, std::string(iValue ? "1" : "0"));
+    mSetCoverageAlwaysOn->runOnce();
+  }
+
 private:
   sqlite3 *mSqlite;
   std::unique_ptr< Statement > mRetriveCoverageAlwaysOn;
+  std::unique_ptr< Statement > mSetCoverageAlwaysOn;
   std::unique_ptr< Statement > mRetrieveCoverage;
   std::unique_ptr< Statement > mSmsRecipients;
   std::unique_ptr< Statement > mEmailRecipients;
