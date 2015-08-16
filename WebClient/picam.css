@@ -1,4 +1,4 @@
-body
+body, #config_div
 {
   font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
   width: 900px;
@@ -19,7 +19,7 @@ td
   border: 5px solid black;
 }
 
-.override_td
+.override_td, .coverage_td
 {
   border: none;
   text-align: left;
@@ -50,4 +50,13 @@ td
 {
   width: 100%;
   vertical-align: central;
+}
+
+#config_div
+{
+  display: none;
+  position: fixed;
+  background-color: white;
+  z-index: 1;
+  top: 0;
 }
