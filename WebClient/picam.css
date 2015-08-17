@@ -19,12 +19,38 @@ td
   border: 5px solid black;
 }
 
-.week_row, .week_hour
+#close_config_div
 {
-  text-align: center;
-  border: 5px solid black;
+  position: relative;
+  right: -850px;
+  height: 50px;
+  width: 50px;
 }
 
+.close_window_png
+{
+  width: 100%;
+  height: 100%;
+}
+
+.week_row, .week_hour
+{
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 100%;
+  text-align: center;
+  border: 2px solid black;
+}
+
+.week_row_on
+{
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 100%;
+  text-align: center;
+  border: 2px solid black;
+  background-color: green;
+}
 .week_row
 {
   width: 13%;
@@ -71,7 +97,7 @@ td
 #config_div
 {
   display: none;
-  position: fixed;
+  position: absolute;
   background-color: white;
   z-index: 1;
   top: 0;
