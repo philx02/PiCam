@@ -15,16 +15,16 @@
 
   function connect()
   {
-  try
-  {
-  wWebSocket = new WebSocket(QueryString.server);
-  }
-  catch (exc)
-  {
-  document.getElementById("debug").innerHTML = exc.message;
-  }
-  wWebSocket.onopen = function (evt) { greetings(evt); };
-  wWebSocket.onmessage = function (evt) { parseMessage(evt); };
+    try
+    {
+      wWebSocket = new WebSocket(QueryString.server);
+    }
+    catch (exc)
+    {
+      console.log(exc.message);
+    }
+    wWebSocket.onopen = function (evt) { greetings(evt); };
+    wWebSocket.onmessage = function (evt) { parseMessage(evt); };
   }
 
   function greetings(evt)
@@ -38,7 +38,6 @@
 
   function parseMessage(evt)
   {
-    //document.getElementById("debug").innerHTML = evt.data;
     var wSplit = evt.data.split("|");
     if (wSplit[0] == "1")
     {
@@ -97,6 +96,35 @@
     {
       document.getElementById("coverage_always_on_control").innerHTML = "<img class=\"toggle_button\" src=\"OFF.png\" />";
     }
+    
+    for (i = 6; i < wSplit.length; ++i)
+    {
+      var wWeekdayHour = wSplit[i].split(";");
+      var wWeekdayHourBegin = wWeekdayHour[0].split(",");
+      var wWeekdayHourEnd = wWeekdayHour[1].split(",");
+      write_coverage_in_table(parseInt(wWeekdayHourBegin[0]), parseInt(wWeekdayHourBegin[1]), parseInt(wWeekdayHourEnd[0]), parseInt(wWeekdayHourEnd[1]));
+    }
+  }
+
+  function write_coverage_in_table(iWeekdayBegin, iHourBegin, iWeekdayEnd, iHourEnd)
+  {
+    var wWeekday = iWeekdayBegin;
+    var wHour = iHourBegin;
+    while (!(wWeekday == iWeekdayEnd && wHour == iHourEnd))
+    {
+      wIdName = "weekday_" + wWeekday.toString() + "_hour_" + wHour.toString();
+      document.getElementById(wIdName).className = "week_row_on";
+      if (++wHour >= 24)
+      {
+        wHour = 0;
+        if (++wWeekday >= 7)
+        {
+          wWeekday = 0;
+        }
+      }
+    }
+    wIdName = "weekday_" + wWeekday.toString() + "_hour_" + wHour.toString();
+    document.getElementById(wIdName).className = "week_row_on";
   }
 
   function recording_override()
@@ -152,7 +180,6 @@
 	</script>
 </div>
 
-<p id="debug"></p>
   <p>
   <table class="status_table">
     <tr>
@@ -199,6 +226,9 @@
   <button onclick="toggle_visibility('config_div');">test</button>
 
   <div id="config_div">
+    <div id="close_config_div" onclick="toggle_visibility('config_div');">
+      <img class="close_window_png" src="close_window.png"></img>
+    </div>
     <table>
       <tr>
         <td class="coverage_td">Coverage 24/7</td>
@@ -219,15 +249,268 @@
         <th class="week_hour">H</th>
       </tr>
       <tr>
-        <th class="week_hour">0</th>
-        <th id='' class='week_row'></th>
-        <th id='' class='week_row'></th>
-        <th id='' class='week_row'></th>
-        <th id='' class='week_row'></th>
-        <th id='' class='week_row'></th>
-        <th id='' class='week_row'></th>
-        <th id='' class='week_row'></th>
-        <th class="week_hour">0</th>
+        <td class="week_hour">0</td>
+        <td id='weekday_0_hour_0' class='week_row'></td>
+        <td id='weekday_1_hour_0' class='week_row'></td>
+        <td id='weekday_2_hour_0' class='week_row'></td>
+        <td id='weekday_3_hour_0' class='week_row'></td>
+        <td id='weekday_4_hour_0' class='week_row'></td>
+        <td id='weekday_5_hour_0' class='week_row'></td>
+        <td id='weekday_6_hour_0' class='week_row'></td>
+        <td class="week_hour">0</td>
+      </tr>
+      <tr>
+        <td class="week_hour">1</td>
+        <td id='weekday_0_hour_1' class='week_row'></td>
+        <td id='weekday_1_hour_1' class='week_row'></td>
+        <td id='weekday_2_hour_1' class='week_row'></td>
+        <td id='weekday_3_hour_1' class='week_row'></td>
+        <td id='weekday_4_hour_1' class='week_row'></td>
+        <td id='weekday_5_hour_1' class='week_row'></td>
+        <td id='weekday_6_hour_1' class='week_row'></td>
+        <td class="week_hour">1</td>
+      </tr>
+      <tr>
+        <td class="week_hour">2</td>
+        <td id='weekday_0_hour_2' class='week_row'></td>
+        <td id='weekday_1_hour_2' class='week_row'></td>
+        <td id='weekday_2_hour_2' class='week_row'></td>
+        <td id='weekday_3_hour_2' class='week_row'></td>
+        <td id='weekday_4_hour_2' class='week_row'></td>
+        <td id='weekday_5_hour_2' class='week_row'></td>
+        <td id='weekday_6_hour_2' class='week_row'></td>
+        <td class="week_hour">2</td>
+      </tr>
+      <tr>
+        <td class="week_hour">3</td>
+        <td id='weekday_0_hour_3' class='week_row'></td>
+        <td id='weekday_1_hour_3' class='week_row'></td>
+        <td id='weekday_2_hour_3' class='week_row'></td>
+        <td id='weekday_3_hour_3' class='week_row'></td>
+        <td id='weekday_4_hour_3' class='week_row'></td>
+        <td id='weekday_5_hour_3' class='week_row'></td>
+        <td id='weekday_6_hour_3' class='week_row'></td>
+        <td class="week_hour">3</td>
+      </tr>
+      <tr>
+        <td class="week_hour">4</td>
+        <td id='weekday_0_hour_4' class='week_row'></td>
+        <td id='weekday_1_hour_4' class='week_row'></td>
+        <td id='weekday_2_hour_4' class='week_row'></td>
+        <td id='weekday_3_hour_4' class='week_row'></td>
+        <td id='weekday_4_hour_4' class='week_row'></td>
+        <td id='weekday_5_hour_4' class='week_row'></td>
+        <td id='weekday_6_hour_4' class='week_row'></td>
+        <td class="week_hour">4</td>
+      </tr>
+      <tr>
+        <td class="week_hour">5</td>
+        <td id='weekday_0_hour_5' class='week_row'></td>
+        <td id='weekday_1_hour_5' class='week_row'></td>
+        <td id='weekday_2_hour_5' class='week_row'></td>
+        <td id='weekday_3_hour_5' class='week_row'></td>
+        <td id='weekday_4_hour_5' class='week_row'></td>
+        <td id='weekday_5_hour_5' class='week_row'></td>
+        <td id='weekday_6_hour_5' class='week_row'></td>
+        <td class="week_hour">5</td>
+      </tr>
+      <tr>
+        <td class="week_hour">6</td>
+        <td id='weekday_0_hour_6' class='week_row'></td>
+        <td id='weekday_1_hour_6' class='week_row'></td>
+        <td id='weekday_2_hour_6' class='week_row'></td>
+        <td id='weekday_3_hour_6' class='week_row'></td>
+        <td id='weekday_4_hour_6' class='week_row'></td>
+        <td id='weekday_5_hour_6' class='week_row'></td>
+        <td id='weekday_6_hour_6' class='week_row'></td>
+        <td class="week_hour">6</td>
+      </tr>
+      <tr>
+        <td class="week_hour">7</td>
+        <td id='weekday_0_hour_7' class='week_row'></td>
+        <td id='weekday_1_hour_7' class='week_row'></td>
+        <td id='weekday_2_hour_7' class='week_row'></td>
+        <td id='weekday_3_hour_7' class='week_row'></td>
+        <td id='weekday_4_hour_7' class='week_row'></td>
+        <td id='weekday_5_hour_7' class='week_row'></td>
+        <td id='weekday_6_hour_7' class='week_row'></td>
+        <td class="week_hour">7</td>
+      </tr>
+      <tr>
+        <td class="week_hour">8</td>
+        <td id='weekday_0_hour_8' class='week_row'></td>
+        <td id='weekday_1_hour_8' class='week_row'></td>
+        <td id='weekday_2_hour_8' class='week_row'></td>
+        <td id='weekday_3_hour_8' class='week_row'></td>
+        <td id='weekday_4_hour_8' class='week_row'></td>
+        <td id='weekday_5_hour_8' class='week_row'></td>
+        <td id='weekday_6_hour_8' class='week_row'></td>
+        <td class="week_hour">8</td>
+      </tr>
+      <tr>
+        <td class="week_hour">9</td>
+        <td id='weekday_0_hour_9' class='week_row'></td>
+        <td id='weekday_1_hour_9' class='week_row'></td>
+        <td id='weekday_2_hour_9' class='week_row'></td>
+        <td id='weekday_3_hour_9' class='week_row'></td>
+        <td id='weekday_4_hour_9' class='week_row'></td>
+        <td id='weekday_5_hour_9' class='week_row'></td>
+        <td id='weekday_6_hour_9' class='week_row'></td>
+        <td class="week_hour">9</td>
+      </tr>
+      <tr>
+        <td class="week_hour">10</td>
+        <td id='weekday_0_hour_10' class='week_row'></td>
+        <td id='weekday_1_hour_10' class='week_row'></td>
+        <td id='weekday_2_hour_10' class='week_row'></td>
+        <td id='weekday_3_hour_10' class='week_row'></td>
+        <td id='weekday_4_hour_10' class='week_row'></td>
+        <td id='weekday_5_hour_10' class='week_row'></td>
+        <td id='weekday_6_hour_10' class='week_row'></td>
+        <td class="week_hour">10</td>
+      </tr>
+      <tr>
+        <td class="week_hour">11</td>
+        <td id='weekday_0_hour_11' class='week_row'></td>
+        <td id='weekday_1_hour_11' class='week_row'></td>
+        <td id='weekday_2_hour_11' class='week_row'></td>
+        <td id='weekday_3_hour_11' class='week_row'></td>
+        <td id='weekday_4_hour_11' class='week_row'></td>
+        <td id='weekday_5_hour_11' class='week_row'></td>
+        <td id='weekday_6_hour_11' class='week_row'></td>
+        <td class="week_hour">11</td>
+      </tr>
+      <tr>
+        <td class="week_hour">12</td>
+        <td id='weekday_0_hour_12' class='week_row'></td>
+        <td id='weekday_1_hour_12' class='week_row'></td>
+        <td id='weekday_2_hour_12' class='week_row'></td>
+        <td id='weekday_3_hour_12' class='week_row'></td>
+        <td id='weekday_4_hour_12' class='week_row'></td>
+        <td id='weekday_5_hour_12' class='week_row'></td>
+        <td id='weekday_6_hour_12' class='week_row'></td>
+        <td class="week_hour">12</td>
+      </tr>
+      <tr>
+        <td class="week_hour">13</td>
+        <td id='weekday_0_hour_13' class='week_row'></td>
+        <td id='weekday_1_hour_13' class='week_row'></td>
+        <td id='weekday_2_hour_13' class='week_row'></td>
+        <td id='weekday_3_hour_13' class='week_row'></td>
+        <td id='weekday_4_hour_13' class='week_row'></td>
+        <td id='weekday_5_hour_13' class='week_row'></td>
+        <td id='weekday_6_hour_13' class='week_row'></td>
+        <td class="week_hour">13</td>
+      </tr>
+      <tr>
+        <td class="week_hour">14</td>
+        <td id='weekday_0_hour_14' class='week_row'></td>
+        <td id='weekday_1_hour_14' class='week_row'></td>
+        <td id='weekday_2_hour_14' class='week_row'></td>
+        <td id='weekday_3_hour_14' class='week_row'></td>
+        <td id='weekday_4_hour_14' class='week_row'></td>
+        <td id='weekday_5_hour_14' class='week_row'></td>
+        <td id='weekday_6_hour_14' class='week_row'></td>
+        <td class="week_hour">14</td>
+      </tr>
+      <tr>
+        <td class="week_hour">15</td>
+        <td id='weekday_0_hour_15' class='week_row'></td>
+        <td id='weekday_1_hour_15' class='week_row'></td>
+        <td id='weekday_2_hour_15' class='week_row'></td>
+        <td id='weekday_3_hour_15' class='week_row'></td>
+        <td id='weekday_4_hour_15' class='week_row'></td>
+        <td id='weekday_5_hour_15' class='week_row'></td>
+        <td id='weekday_6_hour_15' class='week_row'></td>
+        <td class="week_hour">15</td>
+      </tr>
+      <tr>
+        <td class="week_hour">16</td>
+        <td id='weekday_0_hour_16' class='week_row'></td>
+        <td id='weekday_1_hour_16' class='week_row'></td>
+        <td id='weekday_2_hour_16' class='week_row'></td>
+        <td id='weekday_3_hour_16' class='week_row'></td>
+        <td id='weekday_4_hour_16' class='week_row'></td>
+        <td id='weekday_5_hour_16' class='week_row'></td>
+        <td id='weekday_6_hour_16' class='week_row'></td>
+        <td class="week_hour">16</td>
+      </tr>
+      <tr>
+        <td class="week_hour">17</td>
+        <td id='weekday_0_hour_17' class='week_row'></td>
+        <td id='weekday_1_hour_17' class='week_row'></td>
+        <td id='weekday_2_hour_17' class='week_row'></td>
+        <td id='weekday_3_hour_17' class='week_row'></td>
+        <td id='weekday_4_hour_17' class='week_row'></td>
+        <td id='weekday_5_hour_17' class='week_row'></td>
+        <td id='weekday_6_hour_17' class='week_row'></td>
+        <td class="week_hour">17</td>
+      </tr>
+      <tr>
+        <td class="week_hour">18</td>
+        <td id='weekday_0_hour_18' class='week_row'></td>
+        <td id='weekday_1_hour_18' class='week_row'></td>
+        <td id='weekday_2_hour_18' class='week_row'></td>
+        <td id='weekday_3_hour_18' class='week_row'></td>
+        <td id='weekday_4_hour_18' class='week_row'></td>
+        <td id='weekday_5_hour_18' class='week_row'></td>
+        <td id='weekday_6_hour_18' class='week_row'></td>
+        <td class="week_hour">18</td>
+      </tr>
+      <tr>
+        <td class="week_hour">19</td>
+        <td id='weekday_0_hour_19' class='week_row'></td>
+        <td id='weekday_1_hour_19' class='week_row'></td>
+        <td id='weekday_2_hour_19' class='week_row'></td>
+        <td id='weekday_3_hour_19' class='week_row'></td>
+        <td id='weekday_4_hour_19' class='week_row'></td>
+        <td id='weekday_5_hour_19' class='week_row'></td>
+        <td id='weekday_6_hour_19' class='week_row'></td>
+        <td class="week_hour">19</td>
+      </tr>
+      <tr>
+        <td class="week_hour">20</td>
+        <td id='weekday_0_hour_20' class='week_row'></td>
+        <td id='weekday_1_hour_20' class='week_row'></td>
+        <td id='weekday_2_hour_20' class='week_row'></td>
+        <td id='weekday_3_hour_20' class='week_row'></td>
+        <td id='weekday_4_hour_20' class='week_row'></td>
+        <td id='weekday_5_hour_20' class='week_row'></td>
+        <td id='weekday_6_hour_20' class='week_row'></td>
+        <td class="week_hour">20</td>
+      </tr>
+      <tr>
+        <td class="week_hour">21</td>
+        <td id='weekday_0_hour_21' class='week_row'></td>
+        <td id='weekday_1_hour_21' class='week_row'></td>
+        <td id='weekday_2_hour_21' class='week_row'></td>
+        <td id='weekday_3_hour_21' class='week_row'></td>
+        <td id='weekday_4_hour_21' class='week_row'></td>
+        <td id='weekday_5_hour_21' class='week_row'></td>
+        <td id='weekday_6_hour_21' class='week_row'></td>
+        <td class="week_hour">21</td>
+      </tr>
+      <tr>
+        <td class="week_hour">22</td>
+        <td id='weekday_0_hour_22' class='week_row'></td>
+        <td id='weekday_1_hour_22' class='week_row'></td>
+        <td id='weekday_2_hour_22' class='week_row'></td>
+        <td id='weekday_3_hour_22' class='week_row'></td>
+        <td id='weekday_4_hour_22' class='week_row'></td>
+        <td id='weekday_5_hour_22' class='week_row'></td>
+        <td id='weekday_6_hour_22' class='week_row'></td>
+        <td class="week_hour">22</td>
+      </tr>
+      <tr>
+        <td class="week_hour">23</td>
+        <td id='weekday_0_hour_23' class='week_row'></td>
+        <td id='weekday_1_hour_23' class='week_row'></td>
+        <td id='weekday_2_hour_23' class='week_row'></td>
+        <td id='weekday_3_hour_23' class='week_row'></td>
+        <td id='weekday_4_hour_23' class='week_row'></td>
+        <td id='weekday_5_hour_23' class='week_row'></td>
+        <td id='weekday_6_hour_23' class='week_row'></td>
+        <td class="week_hour">23</td>
       </tr>
     </table>
 
