@@ -5,7 +5,7 @@ body, #config_div
   margin: auto;
 }
 
-.status_table, .control_table
+.status_table, .control_table, .week_table
 {
   width: 100%
 }
@@ -17,6 +17,22 @@ td
   font-size: 400%;
   text-align: center;
   border: 5px solid black;
+}
+
+.week_row, .week_hour
+{
+  text-align: center;
+  border: 5px solid black;
+}
+
+.week_row
+{
+  width: 13%;
+}
+
+.week_hour
+{
+  width: 4.5%;
 }
 
 .override_td, .coverage_td
