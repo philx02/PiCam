@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/noncopyable.hpp>
+
 #include <functional>
 #include <deque>
 #include <mutex>
@@ -7,7 +9,7 @@
 #include <condition_variable>
 
 template< typename T >
-class ActiveObject
+class ActiveObject : boost::noncopyable
 {
 public:
   ActiveObject(T &&iInternal)
