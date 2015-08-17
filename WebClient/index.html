@@ -34,6 +34,7 @@
 
   var wRecordingOverride = false;
   var wLightOverride = false;
+  var wCoverageAlwaysOn = false;
 
   function parseMessage(evt)
   {
@@ -71,6 +72,7 @@
     }
     wRecordingOverride = wSplit[3] == "1";
     wLightOverride = wSplit[4] == "1";
+    wCoverageAlwaysOn = wSplit[5] == "1";
     if (wRecordingOverride)
     {
       document.getElementById("record_control").innerHTML = "<img class=\"toggle_button\" src=\"ON.png\" />";
@@ -87,6 +89,14 @@
     {
       document.getElementById("light_control").innerHTML = "<img class=\"toggle_button\" src=\"OFF.png\" />";
     }
+    if (wCoverageAlwaysOn)
+    {
+      document.getElementById("coverage_always_on_control").innerHTML = "<img class=\"toggle_button\" src=\"ON.png\" />";
+    }
+    else
+    {
+      document.getElementById("coverage_always_on_control").innerHTML = "<img class=\"toggle_button\" src=\"OFF.png\" />";
+    }
   }
 
   function recording_override()
@@ -99,6 +109,25 @@
   {
     wLightOverride = !wLightOverride;
     wWebSocket.send("light_override|" + (wLightOverride ? "1" : "0"));
+  }
+
+  function coverage_always_on()
+  {
+    wCoverageAlwaysOn = !wCoverageAlwaysOn;
+    wWebSocket.send("coverage_always_on|" + (wCoverageAlwaysOn ? "1" : "0"));
+  }
+
+  function toggle_visibility(id)
+  {
+    var e = document.getElementById(id);
+    if (e.style.display == 'block')
+    {
+      e.style.display = 'none';
+    }
+    else
+    {
+      e.style.display = 'block';
+    }
   }
 
 </script>
@@ -154,6 +183,7 @@
     </table>
   </p>
 
+  <!--
   <object align="center" classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921"
           codebase="http://downloads.videolan.org/pub/videolan/vlc/latest/win32/axvlc.cab"
           width="800" height="600" id="vlc" events="True">
@@ -164,6 +194,44 @@
     <embed id="vlcEmb" type="application/x-google-vlc-plugin" version="VideoLAN.VLCPlugin.2" autoplay="yes" loop="no" width="720" height="360"
            target="http://spoluck.ca:8090/"></embed>
   </object>
+  -->
+
+  <button onclick="toggle_visibility('config_div');">test</button>
+
+  <div id="config_div">
+    <table>
+      <tr>
+        <td class="coverage_td">Coverage 24/7</td>
+        <td class="toggle_button_td" id="coverage_always_on_control" onclick="coverage_always_on()"></td>
+      </tr>
+    </table>
+
+    <table class="week_table">
+      <tr>
+        <th class="week_hour">H</th>
+        <th class='week_row'>Monday</th>
+        <th class='week_row'>Tuesday</th>
+        <th class='week_row'>Wednesday</th>
+        <th class='week_row'>Thursday</th>
+        <th class='week_row'>Friday</th>
+        <th class='week_row'>Saturday</th>
+        <th class='week_row'>Sunday</th>
+        <th class="week_hour">H</th>
+      </tr>
+      <tr>
+        <th class="week_hour">0</th>
+        <th id='' class='week_row'></th>
+        <th id='' class='week_row'></th>
+        <th id='' class='week_row'></th>
+        <th id='' class='week_row'></th>
+        <th id='' class='week_row'></th>
+        <th id='' class='week_row'></th>
+        <th id='' class='week_row'></th>
+        <th class="week_hour">0</th>
+      </tr>
+    </table>
+
+  </div>
 
 </body>
 </html> 

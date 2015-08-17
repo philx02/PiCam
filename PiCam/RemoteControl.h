@@ -88,19 +88,26 @@ public:
     boost::split(wSplit, iPayload, boost::is_any_of("|"));
     if (wSplit.size() == 2)
     {
-      bool wOverride = wSplit[1] == "1";
+      bool wValue = wSplit[1] == "1";
       if (wSplit[0] == "recording_override")
       {
-        mCameraAndLightControl.push([wOverride](CameraAndLightControl &iControl)
+        mCameraAndLightControl.push([wValue](CameraAndLightControl &iControl)
         {
-          iControl.recordingOverride(wOverride);
+          iControl.recordingOverride(wValue);
         });
       }
       else if (wSplit[0] == "light_override")
       {
-        mCameraAndLightControl.push([wOverride](CameraAndLightControl &iControl)
+        mCameraAndLightControl.push([wValue](CameraAndLightControl &iControl)
         {
-          iControl.lightOverride(wOverride);
+          iControl.lightOverride(wValue);
+        });
+      }
+      else if (wSplit[0] == "coverage_always_on")
+      {
+        mCameraAndLightControl.push([wValue](CameraAndLightControl &iControl)
+        {
+          iControl.coverageAlwaysOn(wValue);
         });
       }
     }
@@ -130,6 +137,8 @@ private:
       wMessage += iControl.recordingOverride() ? "1" : "0";
       wMessage += "|";
       wMessage += iControl.lightOverride() ? "1" : "0";
+      wMessage += "|";
+      wMessage += iControl.coverageAlwaysOn() ? "1" : "0";
       wSender->send(wMessage);
     }
   }

@@ -107,6 +107,11 @@ public:
     return mLightOverride;
   }
 
+  bool coverageAlwaysOn() const
+  {
+    return mNotifier.coverageAlwaysOn();
+  }
+
   void recordingOverride(bool iOverride)
   {
     mRecordingOverride = iOverride;
@@ -132,6 +137,12 @@ public:
     {
       lightOff();
     }
+    notify(*this);
+  }
+
+  void coverageAlwaysOn(bool iValue)
+  {
+    mNotifier.coverageAlwaysOn(iValue);
     notify(*this);
   }
 
