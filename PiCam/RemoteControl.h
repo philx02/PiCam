@@ -143,8 +143,8 @@ private:
       for (auto &&wCoveragePeriod : wCoverageIntervals)
       {
         wMessage += "|";
-        wMessage += std::to_string(wCoveragePeriod.mWeekdayBegin) + "," + std::to_string(wCoveragePeriod.mHourBegin) + ";";
-        wMessage += std::to_string(wCoveragePeriod.mWeekdayEnd) + "," + std::to_string(wCoveragePeriod.mHourEnd);
+        wMessage += std::to_string(wCoveragePeriod.mWeekdayBegin.as_number()) + "," + std::to_string(wCoveragePeriod.mHourBegin) + ";";
+        wMessage += std::to_string(wCoveragePeriod.mWeekdayEnd.as_number()) + "," + std::to_string(wCoveragePeriod.mHourEnd);
       }
       wSender->send(wMessage);
     }

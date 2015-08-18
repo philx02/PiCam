@@ -5,6 +5,7 @@
 #include "SendEmail.h"
 
 #include <boost/noncopyable.hpp>
+#include <boost/date_time.hpp>
 
 #include <memory>
 #include <stdexcept>
@@ -79,17 +80,17 @@ public:
 
   struct CoverageInterval
   {
-    CoverageInterval(uint8_t iWeekdayBegin, uint8_t iHourBegin, uint8_t iWeekdayEnd, uint8_t iHourEnd)
+    CoverageInterval(boost::gregorian::greg_weekday iWeekdayBegin, boost::posix_time::time_duration::hour_type iHourBegin, boost::gregorian::greg_weekday iWeekdayEnd, boost::posix_time::time_duration::hour_type iHourEnd)
       : mWeekdayBegin(iWeekdayBegin)
       , mHourBegin(iHourBegin)
       , mWeekdayEnd(iWeekdayEnd)
       , mHourEnd(iHourEnd)
     {
     }
-    uint8_t mWeekdayBegin;
-    uint8_t mHourBegin;
-    uint8_t mWeekdayEnd;
-    uint8_t mHourEnd;
+    boost::gregorian::greg_weekday mWeekdayBegin;
+    boost::posix_time::time_duration::hour_type mHourBegin;
+    boost::gregorian::greg_weekday mWeekdayEnd;
+    boost::posix_time::time_duration::hour_type mHourEnd;
   };
 
   std::vector< CoverageInterval > coverageIntervals() const
@@ -149,16 +150,20 @@ private:
 
   bool checkIfInCoverage()
   {
+    auto wNow = boost::posix_time::second_clock::local_time();
+    auto wHourOfTheWeek = wNow.date().day_of_week().as_number() * 24 + wNow.time_of_day().hours();
     return 
       checkCoverageForStatement(*mRetriveCoverageAlwaysOn, [](sqlite3_stmt *iStatement) -> bool
       {
         return std::strcmp(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)), "1") == 0;
       })
       ||
-      checkCoverageForStatement(*mRetrieveCoverage, [](sqlite3_stmt *iStatement) -> bool
+      checkCoverageForStatement(*mRetrieveCoverage, [&](sqlite3_stmt *iStatement) -> bool
       {
-        auto wCoverageInterval = CoverageInterval(sqlite3_column_int(iStatement, 0), sqlite3_column_int(iStatement, 1), sqlite3_column_int(iStatement, 2), sqlite3_column_int(iStatement, 3));
-        return sqlite3_column_int(iStatement, 0) == 1;
+        auto wCoverageInterval = CoverageInterval(boost::gregorian::greg_weekday(sqlite3_column_int(iStatement, 0)), sqlite3_column_int(iStatement, 1), boost::gregorian::greg_weekday(sqlite3_column_int(iStatement, 2)), sqlite3_column_int(iStatement, 3));
+        auto wHourOfTheWeekCoverageBegin = wCoverageInterval.mWeekdayBegin.as_number() * 24 + wCoverageInterval.mHourBegin;
+        auto wHourOfTheWeekCoverageEnd = wCoverageInterval.mWeekdayEnd.as_number() * 24 + wCoverageInterval.mHourEnd;
+        return wHourOfTheWeek >= wHourOfTheWeekCoverageBegin && wHourOfTheWeek <= wHourOfTheWeekCoverageEnd;
       });
   }
 
