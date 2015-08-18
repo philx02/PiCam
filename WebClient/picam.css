@@ -10,21 +10,34 @@ body, #config_div
   width: 100%
 }
 
-td
+.large_td, .override_td, .class_on, .class_off, .coverage_td
 {
-  padding-top: 40px;
-  padding-bottom: 40px;
+  padding-top: 30px;
+  padding-bottom: 30px;
   font-size: 400%;
   text-align: center;
   border: 5px solid black;
 }
 
-#close_config_div
+.status_width, .class_on, .class_off
 {
-  position: relative;
-  right: -850px;
-  height: 50px;
-  width: 50px;
+  width: 35%;
+}
+
+.class_on
+{
+  background-color: green;
+}
+
+.class_off
+{
+  background-color: red;
+}
+
+.close_config_div
+{
+  height: 100px;
+  width: 100px;
 }
 
 .close_window_png
@@ -48,7 +61,7 @@ td
   padding-bottom: 0;
   font-size: 100%;
   text-align: center;
-  border: 2px solid black;
+  border: 1px solid black;
   background-color: green;
 }
 .week_row
@@ -67,23 +80,12 @@ td
   text-align: left;
 }
 
-.class_on
-{
-  width: 35%;
-  background-color: green;
-}
-
-.class_off
-{
-  width: 35%;
-  background-color: red;
-}
-
 .toggle_button_td
 {
   padding-top: 10px;
   padding-bottom: 0px;
   width: 35%;
+  height: 125px;
   vertical-align: central;
   border: none;
 }
@@ -91,6 +93,7 @@ td
 .toggle_button
 {
   width: 100%;
+  height: 100%;
   vertical-align: central;
 }
 
@@ -101,4 +104,28 @@ td
   background-color: white;
   z-index: 1;
   top: 0;
+}
+
+.push_button
+{
+  height: 100px;
+  width: 440px;
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  font-size: 400%;
+}
+
+.float_right
+{
+  float: right;
+}
+
+.bottom_buttons
+{
+  padding-top: 30px;
+}
+
+.config_div_top
+{
+  padding-top: 10px;
+  padding-bottom: 15px;
 }

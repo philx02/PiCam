@@ -160,9 +160,9 @@
 
 </script>
   
-<div class="hidden">
-	<script type="text/javascript">
-		<!--//--><![CDATA[//><!--
+  <div class="hidden">
+    <script type="text/javascript">
+		  <!--//--><![CDATA[//><!--
   var images = new Array()
   function preload()
   {
@@ -177,27 +177,24 @@
     "OFF.png"
   )
   //--><!]]>
-	</script>
-</div>
+    </script>
+  </div>
 
-  <p>
   <table class="status_table">
     <tr>
-      <td>Door Switch</td>
-      <td id="door_switch_status"></td>
+      <td class="large_td">Door Switch</td>
+      <td class="large_td status_width" id="door_switch_status"></td>
     </tr>
     <tr>
-      <td>Recording</td>
-      <td id="record_status"></td>
+      <td class="large_td">Recording</td>
+      <td class="large_td status_width" id="record_status"></td>
     </tr>
     <tr>
-      <td>Light</td>
-      <td id="light_status"></td>
+      <td class="large_td">Light</td>
+      <td class="large_td status_width" id="light_status"></td>
     </tr>
   </table>
-  </p>
 
-  <p>
     <table class="control_table">
       <tr>
         <td class="override_td">Recording Override</td>
@@ -208,7 +205,6 @@
         <td class="toggle_button_td" id="light_control" onclick="light_override()"></td>
       </tr>
     </table>
-  </p>
 
   <!--
   <object align="center" classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921"
@@ -222,24 +218,31 @@
            target="http://spoluck.ca:8090/"></embed>
   </object>
   -->
-
-  <button onclick="toggle_visibility('config_div');">test</button>
+  
+  <div class="bottom_buttons">
+    <button class="push_button" onclick="toggle_visibility('config_div');">Edit Coverage</button>
+    <button class="push_button float_right" onclick="toggle_visibility('config_div');">Live Video</button>
+  </div>
 
   <div id="config_div">
-    <div id="close_config_div" onclick="toggle_visibility('config_div');">
-      <img class="close_window_png" src="close_window.png"></img>
+
+    <div class="config_div_top">
+      <button class="push_button" onclick="toggle_visibility('config_div');">Add Coverage</button>
+      <div class="close_config_div float_right" onclick="toggle_visibility('config_div');">
+        <img class="close_window_png" src="close_window.png" />
+      </div>
     </div>
 
     <table class="week_table">
       <tr>
         <th class="week_hour">H</th>
+        <th class='week_row'>Sunday</th>
         <th class='week_row'>Monday</th>
         <th class='week_row'>Tuesday</th>
         <th class='week_row'>Wednesday</th>
         <th class='week_row'>Thursday</th>
         <th class='week_row'>Friday</th>
         <th class='week_row'>Saturday</th>
-        <th class='week_row'>Sunday</th>
         <th class="week_hour">H</th>
       </tr>
       <tr>
