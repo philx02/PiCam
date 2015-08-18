@@ -146,6 +146,11 @@ public:
     notify(*this);
   }
 
+  std::vector< Notifier::CoverageInterval > coverageIntervals() const
+  {
+    return mNotifier.coverageIntervals();
+  }
+
 private:
   CameraPid mCameraPid;
   std::unique_ptr< std::ofstream > mGpioLightSwitch;

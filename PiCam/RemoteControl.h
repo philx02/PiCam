@@ -139,6 +139,13 @@ private:
       wMessage += iControl.lightOverride() ? "1" : "0";
       wMessage += "|";
       wMessage += iControl.coverageAlwaysOn() ? "1" : "0";
+      auto wCoverageIntervals = iControl.coverageIntervals();
+      for (auto &&wCoveragePeriod : wCoverageIntervals)
+      {
+        wMessage += "|";
+        wMessage += std::to_string(wCoveragePeriod.mWeekdayBegin) + "," + std::to_string(wCoveragePeriod.mHourBegin) + ";";
+        wMessage += std::to_string(wCoveragePeriod.mWeekdayEnd) + "," + std::to_string(wCoveragePeriod.mHourEnd);
+      }
       wSender->send(wMessage);
     }
   }

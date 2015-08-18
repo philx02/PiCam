@@ -23,7 +23,7 @@ public:
     Statement(mSqlite, "PRAGMA foreign_keys = ON").runOnce();
     mRetriveCoverageAlwaysOn.reset(new Statement(mSqlite, "SELECT value FROM parameters WHERE name='Coverage always on'"));
     mSetCoverageAlwaysOn.reset(new Statement(mSqlite, "UPDATE parameters SET value=?1 WHERE name='Coverage always on'"));
-    mRetrieveCoverage.reset(new Statement(mSqlite, "SELECT weekday_start, time_start, weekday_end, time_end FROM coverage_intervals"));
+    mRetrieveCoverage.reset(new Statement(mSqlite, "SELECT weekday_begin, hour_begin, weekday_end, hour_end FROM coverage_intervals"));
     mSmsRecipients.reset(new Statement(mSqlite, "SELECT recipient_number, enabled FROM sms_recipients"));
     mEmailRecipients.reset(new Statement(mSqlite, "SELECT recipient_name, recipient_email, enabled FROM email_recipients"));
   }
@@ -77,6 +77,35 @@ public:
     mSetCoverageAlwaysOn->runOnce();
   }
 
+  struct CoverageInterval
+  {
+    CoverageInterval(uint8_t iWeekdayBegin, uint8_t iHourBegin, uint8_t iWeekdayEnd, uint8_t iHourEnd)
+      : mWeekdayBegin(iWeekdayBegin)
+      , mHourBegin(iHourBegin)
+      , mWeekdayEnd(iWeekdayEnd)
+      , mHourEnd(iHourEnd)
+    {
+    }
+    uint8_t mWeekdayBegin;
+    uint8_t mHourBegin;
+    uint8_t mWeekdayEnd;
+    uint8_t mHourEnd;
+  };
+
+  std::vector< CoverageInterval > coverageIntervals() const
+  {
+    std::vector< CoverageInterval > wReturn;
+    mRetrieveCoverage->clear();
+    while (mRetrieveCoverage->runOnce() == SQLITE_ROW)
+    {
+      mRetrieveCoverage->evaluate([&](sqlite3_stmt *iStatement)
+      {
+        wReturn.emplace_back(sqlite3_column_int(iStatement, 0), sqlite3_column_int(iStatement, 1), sqlite3_column_int(iStatement, 2), sqlite3_column_int(iStatement, 3));
+      });
+    }
+    return wReturn;
+  }
+
 private:
   sqlite3 *mSqlite;
   std::unique_ptr< Statement > mRetriveCoverageAlwaysOn;
@@ -128,6 +157,7 @@ private:
       ||
       checkCoverageForStatement(*mRetrieveCoverage, [](sqlite3_stmt *iStatement) -> bool
       {
+        auto wCoverageInterval = CoverageInterval(sqlite3_column_int(iStatement, 0), sqlite3_column_int(iStatement, 1), sqlite3_column_int(iStatement, 2), sqlite3_column_int(iStatement, 3));
         return sqlite3_column_int(iStatement, 0) == 1;
       });
   }
