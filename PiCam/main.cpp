@@ -8,6 +8,9 @@
 
 #include <iostream>
 #include <chrono>
+#include <atomic>
+#include <mutex>
+#include <thread>
 
 void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAndLightControl, const char *iInputGpio, unsigned short iPort);
 
@@ -31,6 +34,12 @@ int main(int argc, char *argv[])
   return 0;
 }
 
+struct DebounceDetect
+{
+  bool mPreviousValue;
+  bool mActualValue;
+};
+
 void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAndLightControl, const char *iInputGpio, unsigned short iPort)
 {
   boost::asio::io_service wIoService;
@@ -38,18 +47,43 @@ void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAnd
 
   std::thread wTcpServerThread([&]() { wIoService.run(); });
 
-  auto wGpioFd = openGpio(iInputGpio);
-  auto wPollFd = openSwitchListener(wGpioFd);
-
-  while (true)
   {
-    std::cout << "Waiting for input" << std::endl;
-    auto wGpioValue = readGpio(wPollFd, wGpioFd);
-    std::cout << "Gpio value: " << wGpioValue << std::endl;
-    iCameraAndLightControl.push([wGpioValue](CameraAndLightControl &iControl)
+    std::ifstream wGpio(iInputGpio);
+  
+    int wGpioDebounceCounter = 0;
+    bool wGpioDebouncedValue = false;
+    while (true)
     {
-      iControl.doorSwitch(wGpioValue);
-    });
+      bool wGpioValue = false;
+      wGpio.seekg(0);
+      wGpio >> wGpioValue;
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      wGpioDebounceCounter += wGpioValue ? 1 : -1;
+      if (wGpioDebounceCounter > 10)
+      {
+        wGpioDebounceCounter = 10;
+        if (!wGpioDebouncedValue)
+        {
+          wGpioDebouncedValue = true;
+          iCameraAndLightControl.push([wGpioDebouncedValue](CameraAndLightControl &iControl)
+          {
+            iControl.doorSwitch(wGpioDebouncedValue);
+          });
+        }
+      }
+      else if (wGpioDebounceCounter < 0)
+      {
+        wGpioDebounceCounter = 0;
+        if (wGpioDebouncedValue)
+        {
+          wGpioDebouncedValue = false;
+          iCameraAndLightControl.push([wGpioDebouncedValue](CameraAndLightControl &iControl)
+          {
+            iControl.doorSwitch(wGpioDebouncedValue);
+          });
+        }
+      }
+    }
   }
 
   wTcpServer.stop();
