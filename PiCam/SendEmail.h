@@ -33,7 +33,7 @@ std::string formatDateForEmail(const bpt::ptime &iDate, const std::string &iTime
   return wDateString.str();
 }
 
-void sendEmail(const std::string &iName, const std::string &iEmail)
+void sendEmail(const std::string &iName, const std::string &iEmail, const std::string &iUrl)
 {
   static const std::string w220(boost::lexical_cast< std::string >(220));
   static const std::string w501(boost::lexical_cast< std::string >(501));
@@ -75,7 +75,7 @@ void sendEmail(const std::string &iName, const std::string &iEmail)
     sendToSmtp(wSocket, wContentTypeAndCharset);
     std::string wMessage;
     wMessage += "<style> p { font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; } </style>";
-    wMessage += "<p><a href='http://google.com'>Door opened during coverage time.</a></p>";
+    wMessage += "<p><a href='" + iUrl + "'>Door opened during coverage time.</a></p>";
     sendToSmtp(wSocket, wMessage);
     sendToSmtp(wSocket, wFinish);
     readFromSmtp(wSocket, w250);

@@ -11,6 +11,16 @@
 #include <memory>
 #include <fstream>
 
+void outputDate(std::ostream &iOut)
+{
+  auto wNow = std::time(nullptr);
+  char wDateString[100];
+  if (std::strftime(wDateString, sizeof(wDateString), "%Y-%m-%d %H:%M:%S", std::localtime(&wNow)) > 0)
+  {
+    iOut << "[" << wDateString << "] ";
+  }
+}
+
 class CameraAndLightControl : public Subject< CameraAndLightControl >, public boost::noncopyable
 {
 public:
@@ -55,6 +65,8 @@ public:
   void doorSwitch(bool iValue)
   {
     mDoorSwitch = iValue;
+    outputDate(std::cout);
+    std::cout << "Door " << ([&]() { return mDoorSwitch ? "OPENED" : "CLOSED"; })() << std::endl;
 
     if (mDoorSwitch)
     {
@@ -167,7 +179,7 @@ private:
   {
     if (!mRecording)
     {
-      notifyCameraChildProcess(mCameraPid);
+      //notifyCameraChildProcess(mCameraPid);
       mRecording = true;
       mStartRecord = sch::high_resolution_clock::now();
     }
@@ -177,7 +189,7 @@ private:
   {
     if (mRecording)
     {
-      notifyCameraChildProcess(mCameraPid);
+      //notifyCameraChildProcess(mCameraPid);
       mRecording = false;
       auto wRecordDuration = sch::high_resolution_clock::now() - mStartRecord;
       mSrtBuilder.append(mStartRecord, wRecordDuration);
@@ -189,6 +201,7 @@ private:
     if (!mLight)
     {
       mLight = true;
+      outputDate(std::cout);
       std::cout << "Light ON" << std::endl;
       *mGpioLightSwitch << "1";
       mGpioLightSwitch->flush();
@@ -200,6 +213,7 @@ private:
     if (mLight)
     {
       mLight = false;
+      outputDate(std::cout);
       std::cout << "Light OFF" << std::endl;
       *mGpioLightSwitch << "0";
       mGpioLightSwitch->flush();

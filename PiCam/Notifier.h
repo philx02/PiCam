@@ -3,6 +3,7 @@
 #include "sqlite/sqlite3.h"
 #include "Statement.h"
 #include "SendEmail.h"
+#include "Operations.h"
 
 #include <boost/noncopyable.hpp>
 #include <boost/date_time.hpp>
@@ -23,6 +24,7 @@ public:
     }
     Statement(mSqlite, "PRAGMA foreign_keys = ON").runOnce();
     mRetriveCoverageAlwaysOn.reset(new Statement(mSqlite, "SELECT value FROM parameters WHERE name='Coverage always on'"));
+    mRetriveUrl.reset(new Statement(mSqlite, "SELECT value FROM parameters WHERE name='URL'"));
     mSetCoverageAlwaysOn.reset(new Statement(mSqlite, "UPDATE parameters SET value=?1 WHERE name='Coverage always on'"));
     mRetrieveCoverage.reset(new Statement(mSqlite, "SELECT weekday_begin, hour_begin, weekday_end, hour_end FROM coverage_intervals"));
     mSmsRecipients.reset(new Statement(mSqlite, "SELECT recipient_number, enabled FROM sms_recipients"));
@@ -32,6 +34,7 @@ public:
   Notifier(Notifier &&iNotifier)
     : mSqlite(std::move(iNotifier.mSqlite))
     , mRetriveCoverageAlwaysOn(std::move(iNotifier.mRetriveCoverageAlwaysOn))
+    , mRetriveUrl(std::move(iNotifier.mRetriveUrl))
     , mSetCoverageAlwaysOn(std::move(iNotifier.mSetCoverageAlwaysOn))
     , mRetrieveCoverage(std::move(iNotifier.mRetrieveCoverage))
     , mSmsRecipients(std::move(iNotifier.mSmsRecipients))
@@ -59,8 +62,8 @@ public:
 
   bool coverageAlwaysOn() const
   {
-    mRetriveCoverageAlwaysOn->clear();
     bool wCoverageAlwaysOn = false;
+    mRetriveCoverageAlwaysOn->clear();
     while (mRetriveCoverageAlwaysOn->runOnce() == SQLITE_ROW)
     {
       mRetriveCoverageAlwaysOn->evaluate([&](sqlite3_stmt *iStatement)
@@ -110,24 +113,37 @@ public:
 private:
   sqlite3 *mSqlite;
   std::unique_ptr< Statement > mRetriveCoverageAlwaysOn;
+  std::unique_ptr< Statement > mRetriveUrl;
   std::unique_ptr< Statement > mSetCoverageAlwaysOn;
   std::unique_ptr< Statement > mRetrieveCoverage;
   std::unique_ptr< Statement > mSmsRecipients;
   std::unique_ptr< Statement > mEmailRecipients;
 
+  std::string retrieveUrl()
+  {
+    std::string wUrl;
+    mRetriveUrl->clear();
+    while (mRetriveUrl->runOnce() == SQLITE_ROW)
+    {
+      mRetriveUrl->evaluate([&](sqlite3_stmt *iStatement)
+      {
+        wUrl.assign(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)));
+      });
+    }
+    return wUrl;
+  }
+
   void sendSms()
   {
+    auto wUrl = retrieveUrl();
     mSmsRecipients->clear();
     while (mSmsRecipients->runOnce() == SQLITE_ROW)
     {
-      mSmsRecipients->evaluate([](sqlite3_stmt *iStatement)
+      mSmsRecipients->evaluate([&](sqlite3_stmt *iStatement)
       {
         if (sqlite3_column_int(iStatement, 1) == 1)
         {
-          std::string wCommand = "curl \"https://voip.ms/api/v1/rest.php?api_username=pcayouette@spoluck.ca&api_password=0TH7zRXKINXj7Exz8S0c&method=sendSMS&did=4503141161&dst=";
-          wCommand += reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0));
-          wCommand += "&message=Door%20opened%20during%20coverage%20time.\" &";
-          system(wCommand.c_str());
+          ::sendSms(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)), wUrl);
         }
       });
     }
@@ -135,14 +151,15 @@ private:
 
   void sendEmail()
   {
+    auto wUrl = retrieveUrl();
     mEmailRecipients->clear();
     while (mEmailRecipients->runOnce() == SQLITE_ROW)
     {
-      mEmailRecipients->evaluate([](sqlite3_stmt *iStatement)
+      mEmailRecipients->evaluate([&](sqlite3_stmt *iStatement)
       {
         if (sqlite3_column_int(iStatement, 2) == 1)
         {
-          ::sendEmail(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)), reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 1)));
+          ::sendEmail(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)), reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 1)), wUrl);
         }
       });
     }
