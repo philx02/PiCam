@@ -1,6 +1,10 @@
-body, #config_div
+body, #config_div, .push_button
 {
   font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+
+body, #config_div
+{
   width: 900px;
   margin: auto;
 }
@@ -8,6 +12,18 @@ body, #config_div
 .status_table, .control_table, .week_table
 {
   width: 100%
+}
+
+.week_table
+{
+  border: 2px solid black;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.week_table, .week_row, .week_hour, .week_row_on
+{
+  border: 5px solid black;
 }
 
 .large_td, .override_td, .class_on, .class_off, .coverage_td
@@ -46,22 +62,16 @@ body, #config_div
   height: 100%;
 }
 
-.week_row, .week_hour
+.week_row, .week_hour, .week_row_on
 {
   padding-top: 0;
   padding-bottom: 0;
   font-size: 100%;
   text-align: center;
-  border: 1px solid black;
 }
 
 .week_row_on
 {
-  padding-top: 0;
-  padding-bottom: 0;
-  font-size: 100%;
-  text-align: center;
-  border: 1px solid black;
   background-color: green;
 }
 .week_row
@@ -110,7 +120,6 @@ body, #config_div
 {
   height: 100px;
   width: 440px;
-  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
   font-size: 400%;
 }
 
@@ -128,4 +137,10 @@ body, #config_div
 {
   padding-top: 10px;
   padding-bottom: 15px;
+}
+
+#video_container
+{
+  padding-top: 30px;
+  text-align: center;
 }
