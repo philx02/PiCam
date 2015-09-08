@@ -49,16 +49,16 @@
       document.getElementById("door_switch_status").innerHTML = "OFF";
       document.getElementById("door_switch_status").className = "class_off";
     }
-    if (wSplit[1] == "1")
-    {
-      document.getElementById("record_status").innerHTML = "ON";
-      document.getElementById("record_status").className = "class_on";
-    }
-    else
-    {
-      document.getElementById("record_status").innerHTML = "OFF";
-      document.getElementById("record_status").className = "class_off";
-    }
+    //if (wSplit[1] == "1")
+    //{
+    //  document.getElementById("record_status").innerHTML = "ON";
+    //  document.getElementById("record_status").className = "class_on";
+    //}
+    //else
+    //{
+    //  document.getElementById("record_status").innerHTML = "OFF";
+    //  document.getElementById("record_status").className = "class_off";
+    //}
     if (wSplit[2] == "1")
     {
       document.getElementById("light_status").innerHTML = "ON";
@@ -69,17 +69,17 @@
       document.getElementById("light_status").innerHTML = "OFF";
       document.getElementById("light_status").className = "class_off";
     }
-    wRecordingOverride = wSplit[3] == "1";
+    //wRecordingOverride = wSplit[3] == "1";
     wLightOverride = wSplit[4] == "1";
     wCoverageAlwaysOn = wSplit[5] == "1";
-    if (wRecordingOverride)
-    {
-      document.getElementById("record_control").innerHTML = "<img class=\"toggle_button\" src=\"ON.png\" />";
-    }
-    else
-    {
-      document.getElementById("record_control").innerHTML = "<img class=\"toggle_button\" src=\"OFF.png\" />";
-    }
+    //if (wRecordingOverride)
+    //{
+    //  document.getElementById("record_control").innerHTML = "<img class=\"toggle_button\" src=\"ON.png\" />";
+    //}
+    //else
+    //{
+    //  document.getElementById("record_control").innerHTML = "<img class=\"toggle_button\" src=\"OFF.png\" />";
+    //}
     if (wLightOverride)
     {
       document.getElementById("light_control").innerHTML = "<img class=\"toggle_button\" src=\"ON.png\" />";
@@ -186,10 +186,6 @@
       <td class="large_td status_width" id="door_switch_status"></td>
     </tr>
     <tr>
-      <td class="large_td">Recording</td>
-      <td class="large_td status_width" id="record_status"></td>
-    </tr>
-    <tr>
       <td class="large_td">Light</td>
       <td class="large_td status_width" id="light_status"></td>
     </tr>
@@ -197,31 +193,27 @@
 
     <table class="control_table">
       <tr>
-        <td class="override_td">Recording Override</td>
-        <td class="toggle_button_td" id="record_control" onclick="recording_override()"></td>
-      </tr>
-      <tr>
         <td class="override_td">Light Override</td>
         <td class="toggle_button_td" id="light_control" onclick="light_override()"></td>
       </tr>
     </table>
 
-  <!--
-  <object align="center" classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921"
-          codebase="http://downloads.videolan.org/pub/videolan/vlc/latest/win32/axvlc.cab"
-          width="800" height="600" id="vlc" events="True">
-    <param name="Src" value="http://spoluck.ca:8090" />
-    <param name="ShowDisplay" value="True" />
-    <param name="AutoLoop" value="False" />
-    <param name="AutoPlay" value="True" />
-    <embed id="vlcEmb" type="application/x-google-vlc-plugin" version="VideoLAN.VLCPlugin.2" autoplay="yes" loop="no" width="720" height="360"
-           target="http://spoluck.ca:8090/"></embed>
-  </object>
-  -->
-  
   <div class="bottom_buttons">
     <button class="push_button" onclick="toggle_visibility('config_div');">Edit Coverage</button>
     <button class="push_button float_right" onclick="toggle_visibility('config_div');">Live Video</button>
+  </div>
+
+  <div id="video_container">
+    <object align="center" classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921"
+            codebase="http://downloads.videolan.org/pub/videolan/vlc/latest/win32/axvlc.cab"
+            width="720" height="360" id="vlc" events="True">
+      <param name="Src" value="http://spoluck.ca:8090" />
+      <param name="ShowDisplay" value="True" />
+      <param name="AutoLoop" value="False" />
+      <param name="AutoPlay" value="True" />
+      <embed id="vlcEmb" type="application/x-google-vlc-plugin" version="VideoLAN.VLCPlugin.2" autoplay="no" loop="no" width="720" height="360"
+             target="http://spoluck.ca:8090/"></embed>
+    </object>
   </div>
 
   <div id="config_div">
