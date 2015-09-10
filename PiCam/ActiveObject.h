@@ -8,14 +8,10 @@
 #include <thread>
 #include <condition_variable>
 
-template< typename T >
 class ActiveObject : boost::noncopyable
 {
 public:
-  ActiveObject(T &&iInternal)
-    : mInternal(std::move(iInternal))
-  {
-  }
+  typedef std::function< void () > Function;
 
   ~ActiveObject()
   {
@@ -29,26 +25,21 @@ public:
 
   inline void stop()
   {
-    doPush(true, [](T &) {});
+    doPush(true, []() {});
   }
 
-  inline void push(const std::function< void (T &ioInternal) > &iFunction)
+  inline void push(const Function &iFunction)
   {
     doPush(false, iFunction);
   }
 
-  const T & getConstInternal() const
-  {
-    return mInternal;
-  }
-
 private:
-  T mInternal;
-  std::deque< std::pair< bool, std::function< void (T &ioInternal) > > > mWorkQueue;
+  typedef std::deque< std::pair< bool, Function > > WorkQueue;
+  WorkQueue mWorkQueue;
   std::mutex mQueueMutex;
   std::condition_variable mWorkSignal;
 
-  void doPush(bool iTerminate, const std::function< void (T &ioInternal) > &iFunction)
+  void doPush(bool iTerminate, const Function &iFunction)
   {
     {
       std::lock_guard< std::mutex > wLock(mQueueMutex);
@@ -68,8 +59,31 @@ private:
       {
         break;
       }
-      wWorkItem.second(mInternal);
+      wWorkItem.second();
       mWorkQueue.pop_front();
     }
   }
+};
+
+template< typename T >
+class DataActiveObject : public ActiveObject
+{
+public:
+  DataActiveObject(T &&iInternal)
+    : mInternal(std::move(iInternal))
+  {
+  }
+
+  inline void dataPush(const std::function< void (T &) > &iFunction)
+  {
+    push([=]() {iFunction(mInternal); });
+  }
+
+  const T & getConstInternal() const
+  {
+    return mInternal;
+  }
+
+private:
+  T mInternal;
 };

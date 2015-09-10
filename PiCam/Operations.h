@@ -35,6 +35,8 @@ void sendSms(const std::string &iNumber, const std::string &iUrl)
   pid_t wPid;
   posix_spawn(&wPid, wExecutableLocation, &wAction, nullptr, const_cast< char * const * >(wArgs), environ);
   posix_spawn_file_actions_destroy(&wAction);
+  int wStatus;
+  waitpid(wPid, &wStatus, 0);
 }
 
 CameraPid openCameraChildProcess(const char *iH264FilePath)
@@ -112,6 +114,7 @@ template< typename T >
 bool readGpio(T, int)
 {
   // faking gpio readout with stdin
+  std::this_thread::sleep_for(std::chrono::hours(1));
   char wValue;
   std::cin >> wValue;
   return wValue == '1';
