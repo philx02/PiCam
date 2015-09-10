@@ -12,7 +12,7 @@
 #include <mutex>
 #include <thread>
 
-void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAndLightControl, const char *iInputGpio, unsigned short iPort);
+void startServerAndMonitorPins(DataActiveObject< CameraAndLightControl > &iCameraAndLightControl, const char *iInputGpio, unsigned short iPort);
 
 int main(int argc, char *argv[])
 {
@@ -22,30 +22,144 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  ActiveObject< CameraAndLightControl > wCameraAndLightControl(CameraAndLightControl(argv[1], argv[2], argv[3], argv[4]));
+  DataActiveObject< CameraAndLightControl > wCameraAndLightControl(CameraAndLightControl(argv[1], argv[2], argv[3], argv[4]));
 
-  std::thread wActiveObjectThread([&]() { wCameraAndLightControl.run(); });
+  std::thread wDataActiveObjectThread([&]() { wCameraAndLightControl.run(); });
 
   startServerAndMonitorPins(wCameraAndLightControl, argv[5], static_cast< unsigned short >(std::strtoul(argv[6], nullptr, 10)));
 
   wCameraAndLightControl.stop();
-  wActiveObjectThread.join();
+  wDataActiveObjectThread.join();
 
   return 0;
 }
 
-struct DebounceDetect
+class VideoDispatcher : public Subject< VideoDispatcher >
 {
-  bool mPreviousValue;
-  bool mActualValue;
+public:
+  VideoDispatcher()
+    : mCurrentChunk(1024, 0)
+  {
+  }
+
+  void threadSafeAttach(IObserver< VideoDispatcher > *iObserver)
+  {
+    std::lock_guard< std::mutex > wLock(mDispatchMutex);
+    attach(iObserver);
+  }
+
+  void threadSafeDetach(IObserver< VideoDispatcher > *iObserver)
+  {
+    std::lock_guard< std::mutex > wLock(mDispatchMutex);
+    detach(iObserver);
+  }
+
+  void perform()
+  {
+    std::lock_guard< std::mutex > wLock(mDispatchMutex);
+    notify(*this);
+  }
+
+  const std::string &currentChunk() const
+  {
+    return mCurrentChunk;
+  }
+
+  char * chunkStart()
+  {
+    return &mCurrentChunk[0];
+  }
+
+  size_t chunkSize() const
+  {
+    return mCurrentChunk.size();
+  }
+
+private:
+  std::string mCurrentChunk;
+  std::mutex mDispatchMutex;
 };
 
-void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAndLightControl, const char *iInputGpio, unsigned short iPort)
+class VideoConnector : public IObserver< VideoDispatcher >
+{
+public:
+  VideoConnector(VideoDispatcher &iVideoDispatcher)
+    : mVideoDispatcher(iVideoDispatcher)
+    , mPlaying(false)
+  {
+    mVideoDispatcher.threadSafeAttach(this);
+  }
+
+  VideoConnector(const VideoConnector &iVideoConnector)
+    : mVideoDispatcher(iVideoConnector.mVideoDispatcher)
+    , mPlaying(iVideoConnector.mPlaying.load())
+  {
+    mVideoDispatcher.threadSafeAttach(this);
+  }
+
+  ~VideoConnector()
+  {
+    mVideoDispatcher.threadSafeDetach(this);
+  }
+  
+  void setSender(const std::shared_ptr< ISender > &iSender)
+  {
+    mSender = iSender;
+  }
+
+  void operator()(const std::string &iPayload)
+  {
+    if (iPayload == "play")
+    {
+      mPlaying = true;
+    }
+    else if (iPayload == "pause")
+    {
+      mPlaying = false;
+    }
+  }
+
+  void update(const VideoDispatcher &iVideoDispatcher)
+  {
+    if (mPlaying)
+    {
+      send(iVideoDispatcher.currentChunk());
+    }
+  }
+
+private:
+  std::atomic< bool > mPlaying;
+  std::weak_ptr< ISender > mSender;
+  VideoDispatcher &mVideoDispatcher;
+
+  void send(const std::string &iMessage)
+  {
+    auto wSender = mSender.lock();
+    if (wSender != nullptr)
+    {
+      wSender->send(iMessage);
+    }
+  }
+};
+
+void startServerAndMonitorPins(DataActiveObject< CameraAndLightControl > &iCameraAndLightControl, const char *iInputGpio, unsigned short iPort)
 {
   boost::asio::io_service wIoService;
-  auto wTcpServer = createTcpServer(wIoService, RemoteControl(iCameraAndLightControl), iPort);
 
-  std::thread wTcpServerThread([&]() { wIoService.run(); });
+  auto wControlAndMonitoringServer = createTcpServer(wIoService, RemoteControl(iCameraAndLightControl), iPort);
+
+  VideoDispatcher wVideoDispatcher;
+  auto wLiveVideoServer = createTcpServer(wIoService, VideoConnector(wVideoDispatcher), iPort + 1);
+  
+  std::thread wIoServiceThread([&]() { wIoService.run(); });
+  std::thread wStdinDispatch([&]()
+  {
+    while (true)
+    {
+      std::cin.read(wVideoDispatcher.chunkStart(), wVideoDispatcher.chunkSize());
+      wVideoDispatcher.perform();
+    }
+  });
 
   {
     std::ifstream wGpio(iInputGpio);
@@ -65,7 +179,7 @@ void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAnd
         if (!wGpioDebouncedValue)
         {
           wGpioDebouncedValue = true;
-          iCameraAndLightControl.push([wGpioDebouncedValue](CameraAndLightControl &iControl)
+          iCameraAndLightControl.dataPush([wGpioDebouncedValue](CameraAndLightControl &iControl)
           {
             iControl.doorSwitch(wGpioDebouncedValue);
           });
@@ -77,7 +191,7 @@ void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAnd
         if (wGpioDebouncedValue)
         {
           wGpioDebouncedValue = false;
-          iCameraAndLightControl.push([wGpioDebouncedValue](CameraAndLightControl &iControl)
+          iCameraAndLightControl.dataPush([wGpioDebouncedValue](CameraAndLightControl &iControl)
           {
             iControl.doorSwitch(wGpioDebouncedValue);
           });
@@ -86,6 +200,7 @@ void startServerAndMonitorPins(ActiveObject< CameraAndLightControl > &iCameraAnd
     }
   }
 
-  wTcpServer.stop();
-  wTcpServerThread.join();
+  wControlAndMonitoringServer.stop();
+  wLiveVideoServer.stop();
+  wIoServiceThread.join();
 }

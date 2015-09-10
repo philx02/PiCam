@@ -118,6 +118,7 @@ private:
   std::unique_ptr< Statement > mRetrieveCoverage;
   std::unique_ptr< Statement > mSmsRecipients;
   std::unique_ptr< Statement > mEmailRecipients;
+  ActiveObject mSmsSender;
 
   std::string retrieveUrl()
   {
@@ -143,7 +144,11 @@ private:
       {
         if (sqlite3_column_int(iStatement, 1) == 1)
         {
-          ::sendSms(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)), wUrl);
+          std::string wRecipient(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)));
+          mSmsSender.push([=]()
+          {
+            ::sendSms(wRecipient, wUrl);
+          });
         }
       });
     }

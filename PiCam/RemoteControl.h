@@ -13,13 +13,13 @@
 class RemoteControl : public IObserver< CameraAndLightControl >
 {
 public:
-  RemoteControl(ActiveObject< CameraAndLightControl > &iCameraAndLightControl)
+  RemoteControl(DataActiveObject< CameraAndLightControl > &iCameraAndLightControl)
     : mCameraAndLightControl(iCameraAndLightControl)
   {
     std::mutex wSyncMutex;
     bool wObserverAttached = false;
     std::condition_variable wSyncSignal;
-    mCameraAndLightControl.push([&](CameraAndLightControl &iControl)
+    mCameraAndLightControl.dataPush([&](CameraAndLightControl &iControl)
     {
       iControl.attach(this);
       {
@@ -38,7 +38,7 @@ public:
     std::mutex wSyncMutex;
     bool wObserverAttached = false;
     std::condition_variable wSyncSignal;
-    mCameraAndLightControl.push([&](CameraAndLightControl &iControl)
+    mCameraAndLightControl.dataPush([&](CameraAndLightControl &iControl)
     {
       iControl.attach(this);
       {
@@ -56,7 +56,7 @@ public:
     std::mutex wSyncMutex;
     bool wObserverDetached = false;
     std::condition_variable wSyncSignal;
-    mCameraAndLightControl.push([&](CameraAndLightControl &iControl)
+    mCameraAndLightControl.dataPush([&](CameraAndLightControl &iControl)
     {
       iControl.detach(this);
       {
@@ -78,7 +78,7 @@ public:
   {
     if (iPayload == "get_status")
     {
-      mCameraAndLightControl.push([this](CameraAndLightControl &iControl)
+      mCameraAndLightControl.dataPush([this](CameraAndLightControl &iControl)
       {
         iControl.notifyOne(*this);
       });
@@ -91,21 +91,21 @@ public:
       bool wValue = wSplit[1] == "1";
       if (wSplit[0] == "recording_override")
       {
-        mCameraAndLightControl.push([wValue](CameraAndLightControl &iControl)
+        mCameraAndLightControl.dataPush([wValue](CameraAndLightControl &iControl)
         {
           iControl.recordingOverride(wValue);
         });
       }
       else if (wSplit[0] == "light_override")
       {
-        mCameraAndLightControl.push([wValue](CameraAndLightControl &iControl)
+        mCameraAndLightControl.dataPush([wValue](CameraAndLightControl &iControl)
         {
           iControl.lightOverride(wValue);
         });
       }
       else if (wSplit[0] == "coverage_always_on")
       {
-        mCameraAndLightControl.push([wValue](CameraAndLightControl &iControl)
+        mCameraAndLightControl.dataPush([wValue](CameraAndLightControl &iControl)
         {
           iControl.coverageAlwaysOn(wValue);
         });
@@ -119,7 +119,7 @@ public:
   }
 
 private:
-  ActiveObject< CameraAndLightControl > &mCameraAndLightControl;
+  DataActiveObject< CameraAndLightControl > &mCameraAndLightControl;
   std::weak_ptr< ISender > mSender;
 
   void sendStatus(const CameraAndLightControl &iControl)
