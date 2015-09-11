@@ -42,9 +42,9 @@ public:
     listenForHandshake();
   }
 
-  virtual void send(const std::string &iMessage)
+  virtual void send(const std::string &iMessage, MessageType iMessageType)
   {
-    std::string wResponseHeader(1, 0x81U);
+    std::string wResponseHeader(1, 0x80U | ((iMessageType == MessageType::TEXT) ? 1 : 2));
     if (iMessage.size() < 126)
     {
       wResponseHeader.append(1, iMessage.size());
@@ -174,6 +174,7 @@ private:
           {
           case 0x00:
           case 0x01:
+          case 0x02:
             mReceiveState = LENGTH;
             listenForPayload(1);
             break;

@@ -38,7 +38,6 @@ class VideoDispatcher : public Subject< VideoDispatcher >
 {
 public:
   VideoDispatcher()
-    : mCurrentChunk(1024, 0)
   {
   }
 
@@ -54,25 +53,16 @@ public:
     detach(iObserver);
   }
 
-  void perform()
+  void perform(const char *iData, size_t iSize)
   {
     std::lock_guard< std::mutex > wLock(mDispatchMutex);
+    mCurrentChunk.assign(iData, iSize);
     notify(*this);
   }
 
   const std::string &currentChunk() const
   {
     return mCurrentChunk;
-  }
-
-  char * chunkStart()
-  {
-    return &mCurrentChunk[0];
-  }
-
-  size_t chunkSize() const
-  {
-    return mCurrentChunk.size();
   }
 
 private:
@@ -109,6 +99,7 @@ public:
 
   void operator()(const std::string &iPayload)
   {
+    std::cout << "message: " << iPayload << std::endl;
     if (iPayload == "play")
     {
       mPlaying = true;
@@ -137,7 +128,7 @@ private:
     auto wSender = mSender.lock();
     if (wSender != nullptr)
     {
-      wSender->send(iMessage);
+      wSender->send(iMessage, ISender::MessageType::BINARY);
     }
   }
 };
@@ -154,10 +145,11 @@ void startServerAndMonitorPins(DataActiveObject< CameraAndLightControl > &iCamer
   std::thread wIoServiceThread([&]() { wIoService.run(); });
   std::thread wStdinDispatch([&]()
   {
+    std::array< char, 32768 > wChunk;
     while (true)
     {
-      std::cin.read(wVideoDispatcher.chunkStart(), wVideoDispatcher.chunkSize());
-      wVideoDispatcher.perform();
+      auto wSize = static_cast< size_t >(std::cin.readsome(&wChunk[0], wChunk.size()));
+      wVideoDispatcher.perform(&wChunk[0], wSize);
     }
   });
 
