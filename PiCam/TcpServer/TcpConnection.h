@@ -51,7 +51,7 @@ public:
     }
     else if (iMessage.size() < 65536)
     {
-      boost::uint16_t wSize = static_cast< boost::uint16_t >(iMessage.size());
+      auto wSize = static_cast< uint16_t >(iMessage.size());
       char *wSizeArray = reinterpret_cast< char * >(&wSize);
       wResponseHeader.append(1, 126);
       wResponseHeader.append(1, wSizeArray[1]);
@@ -59,17 +59,13 @@ public:
     }
     else
     {
-      boost::uint64_t wSize = static_cast< boost::uint64_t >(iMessage.size());
-      char *wSizeArray = reinterpret_cast< char * >(wSize);
+      auto wSize = static_cast< uint64_t >(iMessage.size());
+      char *wSizeArray = reinterpret_cast< char * >(&wSize);
       wResponseHeader.append(1, 127);
-      for (std::size_t wIndex = 0; wIndex < 8; ++wIndex)
-      {
-        wResponseHeader.append(1, wSizeArray[wIndex]);
-      }
+      std::copy(boost::make_reverse_iterator(wSizeArray + 8), boost::make_reverse_iterator(wSizeArray), std::back_inserter(wResponseHeader));
     }
     boost::system::error_code wError;
     boost::asio::write(mSocket, boost::asio::buffer(wResponseHeader), wError);
-    //boost::asio::async_write(mSocket, boost::asio::buffer(wResponseHeader), boost::bind(&TcpConnection::handleWritePayloadHeader, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
     boost::asio::write(mSocket, boost::asio::buffer(iMessage), wError);
   }
 
@@ -220,7 +216,7 @@ private:
           {
             wLength[wIndex] = wStream.get();
           }
-          setPayloadLengthAndNextStep(*reinterpret_cast< boost::uint16_t * >(wLength));
+          setPayloadLengthAndNextStep(*reinterpret_cast< uint16_t * >(wLength));
         }
         break;
 
@@ -231,7 +227,7 @@ private:
           {
             wLength[wIndex] = wStream.get();
           }
-          setPayloadLengthAndNextStep(static_cast< std::size_t >(*reinterpret_cast< boost::uint64_t * >(wLength)));
+          setPayloadLengthAndNextStep(static_cast< std::size_t >(*reinterpret_cast< uint64_t * >(wLength)));
         }
         break;
 
