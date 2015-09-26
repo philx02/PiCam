@@ -89,14 +89,7 @@ public:
     if (wSplit.size() == 2)
     {
       bool wValue = wSplit[1] == "1";
-      if (wSplit[0] == "recording_override")
-      {
-        mCameraAndLightControl.dataPush([wValue](CameraAndLightControl &iControl)
-        {
-          iControl.recordingOverride(wValue);
-        });
-      }
-      else if (wSplit[0] == "light_override")
+      if (wSplit[0] == "light_override")
       {
         mCameraAndLightControl.dataPush([wValue](CameraAndLightControl &iControl)
         {
@@ -130,11 +123,7 @@ private:
       std::string wMessage;
       wMessage += iControl.doorSwitch() ? "1" : "0";
       wMessage += "|";
-      wMessage += iControl.recording() ? "1" : "0";
-      wMessage += "|";
       wMessage += iControl.light() ? "1" : "0";
-      wMessage += "|";
-      wMessage += iControl.recordingOverride() ? "1" : "0";
       wMessage += "|";
       wMessage += iControl.lightOverride() ? "1" : "0";
       wMessage += "|";

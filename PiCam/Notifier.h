@@ -16,6 +16,8 @@ class Notifier : public boost::noncopyable
 public:
   explicit Notifier(const char *iDbLocation)
     : mSqlite(nullptr)
+    , mSmsSender(new ActiveObject())
+    , mSmsSenderThread(new std::thread([&]() { mSmsSender->run(); }))
   {
     auto wResult = sqlite3_open_v2(iDbLocation, &mSqlite, SQLITE_OPEN_READWRITE, nullptr);
     if (wResult != SQLITE_OK)
@@ -39,6 +41,8 @@ public:
     , mRetrieveCoverage(std::move(iNotifier.mRetrieveCoverage))
     , mSmsRecipients(std::move(iNotifier.mSmsRecipients))
     , mEmailRecipients(std::move(iNotifier.mEmailRecipients))
+    , mSmsSender(std::move(iNotifier.mSmsSender))
+    , mSmsSenderThread(std::move(iNotifier.mSmsSenderThread))
   {
     iNotifier.mSqlite = nullptr;
   }
@@ -48,6 +52,11 @@ public:
     while (mSqlite != nullptr && sqlite3_close(mSqlite) == SQLITE_BUSY)
     {
       std::this_thread::yield();
+    }
+    if (mSmsSender != nullptr && mSmsSenderThread != nullptr)
+    {
+      mSmsSender->stop();
+      mSmsSenderThread->join();
     }
   }
 
@@ -118,7 +127,8 @@ private:
   std::unique_ptr< Statement > mRetrieveCoverage;
   std::unique_ptr< Statement > mSmsRecipients;
   std::unique_ptr< Statement > mEmailRecipients;
-  ActiveObject mSmsSender;
+  std::unique_ptr< ActiveObject > mSmsSender;
+  std::unique_ptr< std::thread > mSmsSenderThread;
 
   std::string retrieveUrl()
   {
@@ -145,7 +155,7 @@ private:
         if (sqlite3_column_int(iStatement, 1) == 1)
         {
           std::string wRecipient(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)));
-          mSmsSender.push([=]()
+          mSmsSender->push([=]()
           {
             ::sendSms(wRecipient, wUrl);
           });

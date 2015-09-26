@@ -10,8 +10,6 @@ SET(${this_target}_HEADER_FILES
   Operations.h
   ActiveObject.h
   CameraAndLightControl.h
-  CommonTypedefs.h
-  SrtBuilder.h
   TcpServer/ISender.h
   TcpServer/TcpConnection.h
   TcpServer/TcpServer.h

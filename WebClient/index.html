@@ -49,17 +49,7 @@
       document.getElementById("door_switch_status").innerHTML = "OFF";
       document.getElementById("door_switch_status").className = "class_off";
     }
-    //if (wSplit[1] == "1")
-    //{
-    //  document.getElementById("record_status").innerHTML = "ON";
-    //  document.getElementById("record_status").className = "class_on";
-    //}
-    //else
-    //{
-    //  document.getElementById("record_status").innerHTML = "OFF";
-    //  document.getElementById("record_status").className = "class_off";
-    //}
-    if (wSplit[2] == "1")
+    if (wSplit[1] == "1")
     {
       document.getElementById("light_status").innerHTML = "ON";
       document.getElementById("light_status").className = "class_on";
@@ -69,17 +59,8 @@
       document.getElementById("light_status").innerHTML = "OFF";
       document.getElementById("light_status").className = "class_off";
     }
-    //wRecordingOverride = wSplit[3] == "1";
-    wLightOverride = wSplit[4] == "1";
-    wCoverageAlwaysOn = wSplit[5] == "1";
-    //if (wRecordingOverride)
-    //{
-    //  document.getElementById("record_control").innerHTML = "<img class=\"toggle_button\" src=\"ON.png\" />";
-    //}
-    //else
-    //{
-    //  document.getElementById("record_control").innerHTML = "<img class=\"toggle_button\" src=\"OFF.png\" />";
-    //}
+    wLightOverride = wSplit[2] == "1";
+    wCoverageAlwaysOn = wSplit[3] == "1";
     if (wLightOverride)
     {
       document.getElementById("light_control").innerHTML = "<img class=\"toggle_button\" src=\"ON.png\" />";
@@ -203,18 +184,51 @@
     <button class="push_button float_right" onclick="toggle_visibility('config_div');">Live Video</button>
   </div>
 
-  <div id="video_container">
-    <object align="center" classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921"
-            codebase="http://downloads.videolan.org/pub/videolan/vlc/latest/win32/axvlc.cab"
-            width="720" height="360" id="vlc" events="True">
-      <param name="Src" value="http://spoluck.ca:8090" />
-      <param name="ShowDisplay" value="True" />
-      <param name="AutoLoop" value="False" />
-      <param name="AutoPlay" value="True" />
-      <embed id="vlcEmb" type="application/x-google-vlc-plugin" version="VideoLAN.VLCPlugin.2" autoplay="no" loop="no" width="720" height="360"
-             target="http://spoluck.ca:8090/"></embed>
+  <div id="video-jwplayer_wrapper">
+    <object type="application/x-shockwave-flash" data="/jwplayer/jwplayer.flash.swf" id="video-jwplayer" name="video-jwplayer" tabindex="0">
+      <param name="allowfullscreen" value="true">
+      <param name="allowscriptaccess" value="always">
+      <param name="seamlesstabbing" value="true">
+      <param name="wmode" value="opaque">
     </object>
+    <div id="video-jwplayer_aspect" style="display: none;"></div>
+    <div id="video-jwplayer_jwpsrv" style="position: absolute; top: 0px; z-index: 10;"></div>
   </div>
+
+  <script src="/jwplayer/jwplayer.js"></script>
+  <script type="text/javascript">jwplayer.key = "dRt30Qtn+pBY50UFEzLN4vwacThtka6Ows/gAQ==";</script>
+
+  <script type="text/javascript">
+    jwplayer('video-jwplayer').setup({
+      flashplayer: "/jwplayer/jwplayer.flash.swf"
+      , file: QueryString.videosource
+      , autoStart: true
+      , rtmp: {
+        bufferlength: 0.1
+      }
+      , deliveryType: "streaming"
+      , width: 640
+      , height: 360
+      , player: {
+        modes: {
+          linear: {
+            controls: {
+              stream: {
+                manage: false
+                , enabled: false
+              }
+            }
+          }
+        }
+      }
+      , shows: {
+        streamTimer: {
+          enabled: true
+          , tickRate: 100
+        }
+      }
+    });
+  </script>
 
   <div id="config_div">
 
