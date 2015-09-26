@@ -139,8 +139,12 @@ body, #config_div
   padding-bottom: 15px;
 }
 
-#video_container
+#video-jwplayer_wrapper
 {
+  margin: auto;
   padding-top: 30px;
-  text-align: center;
+  position: relative;
+  display: block;
+  width: 640px;
+  height: 360px;
 }
